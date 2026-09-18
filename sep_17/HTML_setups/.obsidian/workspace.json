@@ -1,0 +1,229 @@
+{
+  "main": {
+    "id": "9328c286f6199605",
+    "type": "split",
+    "children": [
+      {
+        "id": "bf872d90edcfadb9",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c4ce5ee4ad62e8ad",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "b2f5fb01fc77976d",
+    "type": "split",
+    "children": [
+      {
+        "id": "4baecb30499ec6a1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c949710df76a359f",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "82f9d85926e4f7a9",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "873d73b1fbee20dc",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "f257ec5b826db904",
+    "type": "split",
+    "children": [
+      {
+        "id": "68b0b2b9a755a481",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f6bad355ea04f951",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "05dda85a1913f1e4",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "fca38624c79ccdf3",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "89aabf349def93df",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "ccf8c26eb71b6937",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "md_uploaded/originations/lar_volume.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "c949710df76a359f",
+  "lastOpenFiles": [
+    "markdown_viewer/CURSOR_AGENT_PROMPT.md",
+    "markdown_viewer/STEPS.md",
+    "markdown_viewer/md_uploaded/03_originations/02_lar_volume.svg",
+    "markdown_viewer/md_uploaded/03_originations/02_lar_volume.md",
+    "markdown_viewer/md_uploaded/03_originations/01_action_taken.svg",
+    "markdown_viewer/md_uploaded/03_originations/01_action_taken.md",
+    "markdown_viewer/md_uploaded/02_occupancy/02_occupancy_mix.svg",
+    "markdown_viewer/md_uploaded/02_occupancy/02_occupancy_mix.md",
+    "markdown_viewer/md_uploaded/02_occupancy/01_investment_share.svg",
+    "markdown_viewer/md_uploaded/02_occupancy/01_investment_share.md",
+    "markdown_viewer/md_uploaded/01_MBS/01_mbs_glossary.md",
+    "markdown_viewer/md_uploaded/manifest.json",
+    "markdown_viewer/md_uploaded/03_originations",
+    "markdown_viewer/md_uploaded/02_occupancy",
+    "markdown_viewer/md_uploaded/01_MBS",
+    "markdown_viewer/md_uploaded",
+    "markdown_viewer/markdown_folder_viewer.html",
+    "markdown_viewer/manifest.json",
+    "markdown_viewer/embed_markdown_folder.py",
+    "markdown_viewer",
+    "manifest.json",
+    "md_uploaded/03_originations/02_lar_volume.md",
+    "md_uploaded/03_originations/01_action_taken.md",
+    "md_uploaded/02_occupancy/02_occupancy_mix.md",
+    "md_uploaded/02_occupancy/01_investment_share.md",
+    "md_uploaded/03_originations/02_lar_volume.svg",
+    "md_uploaded/03_originations/01_action_taken.svg",
+    "md_uploaded/02_occupancy/02_occupancy_mix.svg",
+    "md_uploaded/02_occupancy/01_investment_share.svg",
+    "md_uploaded/01_MBS/01_mbs_glossary.md",
+    "md_uploaded/03_originations/lar_volume.svg",
+    "md_uploaded/03_originations/lar_volume.md",
+    "md_uploaded/03_originations/action_taken.svg",
+    "md_uploaded/03_originations/action_taken.md",
+    "md_uploaded/02_occupancy/occupancy_mix.md",
+    "md_uploaded/02_occupancy/investment_share.md",
+    "md_uploaded/01_MBS/mbs_glossary.md",
+    "md_uploaded/MBS/mbs_glossary.md",
+    "md_uploaded/originations/action_taken.md",
+    "md_uploaded/occupancy/occupancy_mix.md",
+    "md_uploaded/occupancy/investment_share.md"
+  ]
+}

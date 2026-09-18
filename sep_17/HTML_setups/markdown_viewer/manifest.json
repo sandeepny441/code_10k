@@ -1,0 +1,15 @@
+{
+  "root": "md_uploaded",
+  "library": "md_uploaded",
+  "files": [
+    "01_MBS/01_mbs_glossary.md",
+    "02_occupancy/01_investment_share.md",
+    "02_occupancy/01_investment_share.svg",
+    "02_occupancy/02_occupancy_mix.md",
+    "02_occupancy/02_occupancy_mix.svg",
+    "03_originations/01_action_taken.md",
+    "03_originations/01_action_taken.svg",
+    "03_originations/02_lar_volume.md",
+    "03_originations/02_lar_volume.svg"
+  ]
+}

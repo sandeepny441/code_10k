@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Markdown Folder Viewer</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --surface: #ffffff;
+        --line: #dfe4ec;
+        --text: #1f2736;
+        --muted: #667389;
+        --faint: #8c97aa;
+        --accent: #c43dff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Lato", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .mobile-bar {
+        display: none;
+      }
+
+      .shell {
+        width: 100%;
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        grid-template-columns: 200px minmax(0, 1fr) 210px;
+        background: var(--surface);
+      }
+
+      .sidebar,
+      .toc {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        height: 100vh;
+        overflow: auto;
+        background: var(--surface);
+      }
+
+      .sidebar {
+        padding: 30px 14px 28px 36px;
+        border-right: 1px solid var(--line);
+      }
+
+      .toc {
+        padding: 30px 36px 28px 14px;
+        border-left: 1px solid var(--line);
+      }
+
+      .brand {
+        margin-bottom: 28px;
+      }
+
+      .brand-title {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        line-height: 0.92;
+      }
+
+      .brand-word {
+        display: block;
+        font-size: 1.58rem;
+        font-weight: 700;
+        letter-spacing: -0.05em;
+        text-transform: capitalize;
+      }
+
+      .brand-word.accent {
+        color: var(--accent);
+        font-style: italic;
+      }
+
+      .section-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .section-link {
+        display: block;
+        padding: 4px 0;
+        color: var(--muted);
+        line-height: 1.2;
+        cursor: pointer;
+      }
+
+      .section-link.active {
+        color: var(--accent);
+      }
+
+      .main {
+        padding: 28px 56px 56px;
+        min-width: 0;
+      }
+
+      .article {
+        max-width: none;
+      }
+
+      .eyebrow {
+        margin-bottom: 12px;
+        color: var(--faint);
+        font-size: 0.9rem;
+      }
+
+      .article h1 {
+        margin: 0;
+        font-size: clamp(1.75rem, 2.8vw, 2.4rem);
+        line-height: 1.08;
+        font-weight: 700;
+      }
+
+      .figure {
+        margin: 22px 0 8px;
+        border: 1px solid var(--line);
+        background: #fff;
+        overflow: hidden;
+      }
+
+      .figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+        vertical-align: middle;
+      }
+
+      .figure.hidden,
+      .content-block.hidden,
+      .article-body.hidden,
+      .commentary-list.hidden,
+      .markdown-content.hidden {
+        display: none;
+      }
+
+      .commentary-list {
+        margin: 18px 0 0;
+        padding: 0 0 0 1.15em;
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.76;
+      }
+
+      .commentary-list li + li {
+        margin-top: 10px;
+      }
+
+      .markdown-content {
+        margin-top: 18px;
+        font-size: 1.01rem;
+        line-height: 1.72;
+      }
+
+      .markdown-content h2 {
+        margin: 24px 0 10px;
+        font-size: 1.18rem;
+        font-weight: 600;
+      }
+
+      .markdown-content p {
+        margin: 0 0 14px;
+        color: var(--muted);
+      }
+
+      .markdown-content ul,
+      .markdown-content ol {
+        margin: 6px 0 15px;
+        padding-left: 1.15em;
+        color: var(--muted);
+      }
+
+      .markdown-content li {
+        margin: 5px 0;
+        line-height: 1.65;
+      }
+
+      .markdown-content hr {
+        border: none;
+        border-top: 1px solid var(--line);
+        margin: 22px 0 14px;
+      }
+
+      .markdown-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0 18px;
+        font-size: 0.92rem;
+      }
+
+      .markdown-content th,
+      .markdown-content td {
+        border: 1px solid var(--line);
+        padding: 8px 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .markdown-content th {
+        background: #f5f7fa;
+        font-weight: 600;
+      }
+
+      .markdown-content tr:nth-child(even) {
+        background: #fafbfc;
+      }
+
+      .toc-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .toc-link {
+        display: block;
+        padding: 4px 0 4px 10px;
+        border-left: 2px solid transparent;
+        color: var(--muted);
+        line-height: 1.2;
+        cursor: pointer;
+      }
+
+      .toc-link + .toc-link {
+        margin-top: 4px;
+      }
+
+      .toc-link.active {
+        border-left-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .backdrop {
+        display: none;
+      }
+
+      @media (max-width: 1040px) {
+        .mobile-bar {
+          position: sticky;
+          top: 0;
+          z-index: 20;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          height: 52px;
+          padding: 0 14px;
+          border-bottom: 1px solid var(--line);
+          background: rgba(255, 255, 255, 0.94);
+          backdrop-filter: blur(12px);
+        }
+
+        .mobile-toggle {
+          width: 34px;
+          height: 34px;
+          border: 0;
+          border-radius: 8px;
+          background: transparent;
+          color: var(--muted);
+          cursor: pointer;
+        }
+
+        .mobile-toggle svg {
+          width: 18px;
+          height: 18px;
+        }
+
+        .mobile-title strong {
+          display: block;
+          font-size: 0.95rem;
+        }
+
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: fixed;
+          top: 52px;
+          left: 0;
+          bottom: 0;
+          width: min(84vw, 290px);
+          z-index: 25;
+          transform: translateX(-102%);
+          transition: transform 0.22s ease;
+        }
+
+        body.nav-open .sidebar {
+          transform: translateX(0);
+        }
+
+        .toc {
+          display: none;
+        }
+
+        .main {
+          padding: 24px 20px 40px;
+        }
+
+        .article {
+          max-width: none;
+        }
+
+        .backdrop {
+          position: fixed;
+          inset: 52px 0 0;
+          z-index: 15;
+          display: block;
+          opacity: 0;
+          pointer-events: none;
+          background: rgba(12, 19, 31, 0.22);
+          transition: opacity 0.22s ease;
+        }
+
+        body.nav-open .backdrop {
+          opacity: 1;
+          pointer-events: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="mobile-bar">
+      <button class="mobile-toggle" id="menuToggle" aria-label="Toggle sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"></path>
+        </svg>
+      </button>
+      <div class="mobile-title">
+        <strong id="mobileContextTitle">Markdown folder</strong>
+      </div>
+    </header>
+
+    <div class="backdrop" id="backdrop"></div>
+
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand" id="brandTitle"></div>
+        <nav class="section-nav" id="sectionNav"></nav>
+      </aside>
+
+      <main class="main">
+        <article class="article article-body hidden" id="articleBody">
+          <div class="eyebrow" id="articleEyebrow"></div>
+          <h1 id="articleTitle"></h1>
+          <figure class="figure hidden" id="articleFigure">
+            <img id="articleImage" alt="" />
+          </figure>
+          <ul class="commentary-list hidden" id="articleCommentary"></ul>
+          <div class="markdown-content hidden" id="articleMarkdown"></div>
+        </article>
+      </main>
+
+      <aside class="toc">
+        <ul class="toc-list" id="itemNav"></ul>
+      </aside>
+    </div>
+
+    <!-- Pack notes with: python3 embed_markdown_folder.py  (see STEPS.md) -->
+    <!-- EMBEDDED_FOLDER_START -->
+    <script type="application/json" id="embeddedFolder">
+{
+  "root": "md_uploaded",
+  "files": [
+    {
+      "path": "01_MBS/01_mbs_glossary.md",
+      "text": "# MBS Glossary (A–Z)\n\nComplete alphabetical reference of MBS and fixed income terms.\n\n## Core Terms (A–Z)\n\n| Term                                                | Definition                                                                                                                            |\n| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |\n| **Accrued Interest**                                | Interest that has been earned but not yet paid to the bondholder; calculated between coupon payment dates                             |\n| **Agency MBS**                                      | Mortgage-backed securities issued or guaranteed by government-sponsored enterprises (Fannie Mae, Freddie Mac, Ginnie Mae)             |\n| **Amortization**                                    | The process of paying down a loan over time through regular principal and interest payments                                           |\n| **Amortization Schedule**                           | A table showing each payment on a loan, breaking down how much goes to principal vs. interest                                         |\n| **ARM**                                             | Adjustable Rate Mortgage; a mortgage where the interest rate changes periodically based on market conditions                          |\n| **Ask Price**                                       | The price at which a seller is willing to sell a security (opposite of bid price)                                                     |\n| **Asset-Backed Securities (ABS)**                   | Securities backed by a pool of assets (like auto loans or credit card receivables) instead of mortgages                               |\n| **Average Life**                                    | The weighted average time it takes to receive principal repayment on a bond; accounts for prepayments                                 |\n| **Basis Points**                                    | A unit of measure for interest rates; 1 basis point = 0.01% (100 basis points = 1%)                                                   |\n| **Bid Price**                                       | The price at which a buyer is willing to buy a security (opposite of ask price)                                                       |\n| **Bid-Ask Spread**                                  | The difference between what buyers will pay and what sellers will accept; indicates market liquidity                                  |\n| **Bond Rating**                                     | A credit quality assessment (AAA, AA, A, BBB, etc.) indicating the likelihood a bond issuer will repay debt                           |\n| **Book Value**                                      | The value of a mortgage pool recorded on a servicer's or investor's books                                                             |\n| **Bullet Bond**                                     | A bond where the entire principal is repaid in one lump sum at maturity, not gradually                                                |\n| **Call Option**                                     | The right (but not obligation) for an issuer to repay a bond before its maturity date                                                 |\n| **Callable Bond**                                   | A bond that can be redeemed by the issuer before the stated maturity date                                                             |\n| **Cash Flow**                                       | The movement of money in and out; for MBS, includes principal and interest payments                                                   |\n| **CMO**                                             | Collateralized Mortgage Obligation; a structured security that divides mortgage cash flows into different priority levels (tranches)  |\n| **Collateral**                                      | Assets pledged as security for a loan; in MBS, the underlying mortgages are the collateral                                            |\n| **Collateralized Debt Obligation (CDO)**            | A security backed by a pool of debt obligations, often including mortgage-backed securities                                           |\n| **Constant Prepayment Rate (CPR)**                  | An annualized estimate of how fast mortgages in a pool will be paid off early                                                         |\n| **Coupon**                                          | The periodic interest payment made to a bondholder; expressed as a percentage of face value                                           |\n| **Coupon Rate**                                     | The annual interest rate paid on a bond (e.g., 4% coupon means 4% annual interest)                                                    |\n| **Credit Risk**                                     | The risk that a borrower will default and fail to make required payments                                                              |\n| **Credit Spread**                                   | The difference in yield between a risky bond and a risk-free bond (like U.S. Treasuries)                                              |\n| **Custodian**                                       | A third party that holds and safeguards the mortgages or securities in a pool                                                         |\n| **Default**                                         | Failure to make required loan or bond payments on time                                                                                |\n| **Delinquency**                                     | A situation where a borrower is late on payments but has not yet defaulted                                                            |\n| **Discount**                                        | When a bond's market price is below its face value (occurs when rates have risen since issuance)                                      |\n| **Discount Bond**                                   | A bond trading below par value; typically occurs when its coupon is lower than current market rates                                   |\n| **Discount Rate**                                   | The interest rate used to calculate the present value of future cash flows                                                            |\n| **Dollar Roll**                                     | A short-term trading transaction where an investor sells an MBS and simultaneously agrees to repurchase a similar one at a later date |\n| **Duration**                                        | A measure of how sensitive a bond's price is to changes in interest rates; expressed in years                                         |\n| **Effective Duration**                              | A measure of duration that accounts for the impact of prepayments and callable features                                               |\n| **Extension Risk**                                  | The risk that falling interest rates will cause prepayments to slow, extending the bond's life longer than expected                   |\n| **Face Value**                                      | The principal amount of a bond that will be repaid at maturity (also called par value or par)                                         |\n| **Fannie Mae**                                      | Federal National Mortgage Association; a government-sponsored enterprise that buys, guarantees, and securitizes mortgages             |\n| **Fixed-Rate Mortgage**                             | A mortgage where the interest rate stays the same throughout the loan term                                                            |\n| **Floater**                                         | A bond with a variable coupon rate that adjusts periodically based on a reference rate                                                |\n| **Floater Cap**                                     | The maximum interest rate a floating-rate bond can pay                                                                                |\n| **Floater Floor**                                   | The minimum interest rate a floating-rate bond can pay                                                                                |\n| **Forward MBS**                                     | An MBS that will be delivered in the future, not immediately                                                                          |\n| **Freddie Mac**                                     | Federal Home Loan Mortgage Corporation; a government-sponsored enterprise that buys and securitizes mortgages                         |\n| **Freddie Mac PC**                                  | Participation Certificate issued by Freddie Mac; an agency MBS product                                                                |\n| **Ginnie Mae**                                      | Government National Mortgage Association; issues MBS backed by government-insured loans (FHA, VA, USDA)                               |\n| **Gross Coupon**                                    | The total interest rate on mortgages in a pool before the servicer takes their cut                                                    |\n| **GSE**                                             | Government-Sponsored Enterprise; includes Fannie Mae, Freddie Mac, and Ginnie Mae                                                     |\n| **Hedge**                                           | A transaction designed to reduce or offset the risk of another investment                                                             |\n| **Index**                                           | A benchmark rate (like SOFR or the 10-year Treasury yield) used to determine interest rates on adjustable products                    |\n| **Interest Rate Risk**                              | The risk that bond prices will fall if interest rates rise                                                                            |\n| **Interest-Only Strip (IO)**                        | A security that receives only the interest payments from a mortgage pool, not the principal                                           |\n| **Inverse Floater**                                 | A floating-rate bond where the coupon moves in the opposite direction of market rates                                                 |\n| **Liquidity**                                       | The ease with which a security can be bought or sold quickly without significantly affecting its price                                |\n| **Liquidity Risk**                                  | The risk that a security cannot be sold quickly without taking a significant loss                                                     |\n| **LTV**                                             | Loan-to-Value; the loan amount divided by the property's value, expressed as a percentage                                             |\n| **FICO Score**                                      | A credit score ranging from 300 to 850 that measures an individual's creditworthiness                                                 |\n| **Make-Whole Provision**                            | A clause allowing a borrower to pay off a loan early without penalty, usually by compensating the lender for lost interest            |\n| **Maturity Date**                                   | The date on which the principal of a bond must be repaid                                                                              |\n| **Moral Hazard**                                    | The risk that one party will take excessive risks knowing another party bears the cost of failure                                     |\n| **Mortgage Pool**                                   | A collection of mortgages bundled together to create mortgage-backed securities                                                       |\n| **Mortgage Pass-Through**                           | An MBS where investors receive a proportional share of all principal and interest payments (minus servicing fees)                     |\n| **Negative Convexity**                              | A characteristic of callable bonds where price appreciation is limited when rates fall due to call option                             |\n| **Non-Agency MBS**                                  | Mortgage-backed securities not issued or guaranteed by government-sponsored enterprises; subject to credit risk                       |\n| **OAS**                                             | Option-Adjusted Spread; a measure of yield spread that accounts for embedded options like prepayment                                  |\n| **Overcollateralization**                           | When the value of collateral exceeds the amount of debt issued against it; provides a cushion for bondholders                         |\n| **Par Value**                                       | The face value of a bond; the amount that will be repaid at maturity                                                                  |\n| **Pass-Through Rate**                               | The interest rate paid to MBS investors; typically less than the gross coupon due to servicing fees                                   |\n| **Payment Delay**                                   | The number of days between when a mortgage payment is collected and when it's passed through to MBS investors                         |\n| **Pool Factor**                                     | A number showing what percentage of the original principal remains outstanding (ranges from 1.0 to 0.0)                               |\n| **Prepayment**                                      | Early repayment of a loan before the scheduled maturity date                                                                          |\n| **Prepayment Penalty**                              | A fee charged to a borrower for paying off a loan early                                                                               |\n| **Prepayment Risk**                                 | The risk that rising interest rates will slow prepayments, extending the bond's duration                                              |\n| **Premium Bond**                                    | A bond trading above par value; typically occurs when its coupon is higher than current market rates                                  |\n| **Principal**                                       | The original amount borrowed or the face value of a bond                                                                              |\n| **Principal-Only Strip (PO)**                       | A security that receives only the principal payments from a mortgage pool, not the interest                                           |\n| **Prospectus**                                      | A detailed document describing a security's terms, risks, and the issuer                                                              |\n| **PSA Model**                                       | A standard model that predicts mortgage prepayment speeds; 100% PSA is the baseline assumption                                        |\n| **Purchase Agreement**                              | A contract between the mortgage originator and the entity buying the mortgages for securitization                                     |\n| **Qualified Mortgage (QM)**                         | A mortgage meeting specific criteria established by regulations; offers certain legal protections                                     |\n| **Ramp-Up**                                         | The initial period of a CMO tranche where it doesn't receive principal payments yet                                                   |\n| **Real Estate Mortgage Investment Conduit (REMIC)** | A special legal structure used for securitizing mortgages with tax benefits                                                           |\n| **Refinancing**                                     | The process of replacing an existing loan with a new loan, typically to get better terms                                              |\n| **Reinvestment Risk**                               | The risk that interest and principal payments will have to be reinvested at lower rates                                               |\n| **Remainder Tranche**                               | The lowest priority tranche in a CMO that absorbs losses first                                                                        |\n| **Repurchase Agreement (Repo)**                     | A short-term transaction where securities are sold with an agreement to repurchase them at a set price                                |\n| **Residual Tranche**                                | The final CMO tranche that receives whatever cash remains after other tranches are paid                                               |\n| **Reverse Floater**                                 | Same as inverse floater; a bond with a coupon that moves opposite to interest rate changes                                            |\n| **Reverse Mortgage**                                | A mortgage allowing homeowners to borrow against their home equity, with repayment typically due upon death or sale                   |\n| **S&P 500**                                         | The Standard & Poor's 500 Index; a benchmark index of large-cap U.S. stocks                                                           |\n| **Secondary Market**                                | The market where existing securities are bought and sold between investors                                                            |\n| **Securitization**                                  | The process of pooling loans and creating tradable securities backed by those loans                                                   |\n| **Servicer**                                        | The company responsible for collecting mortgage payments, maintaining escrow accounts, and managing delinquencies                     |\n| **Servicing Fee**                                   | The fee charged by a servicer, typically 0.25% to 0.50% of the outstanding balance annually                                           |\n| **Settlement Date**                                 | The date when payment is delivered and ownership of a security transfers from seller to buyer                                         |\n| **Shelf Registration**                              | A process allowing an issuer to register securities that can be sold over time without additional registration                        |\n| **SOFR**                                            | Secured Overnight Financing Rate; a benchmark interest rate replacing LIBOR                                                           |\n| **Spread**                                          | The difference in yield between two securities; indicates relative value and risk                                                     |\n| **Stated Maturity**                                 | The date the final payment on a bond is due                                                                                           |\n| **Step-Up Bond**                                    | A bond where the coupon rate increases at predetermined intervals                                                                     |\n| **Stripped MBS**                                    | An MBS that has been divided into separate principal-only (PO) and interest-only (IO) securities                                      |\n| **Subordination**                                   | A structure where some securities have lower priority claims than others in receiving cash flows                                      |\n| **Support Tranche**                                 | In a CMO, a tranche that provides support to other tranches by absorbing prepayment risk                                              |\n| **Swap**                                            | A transaction where two parties exchange cash flows, often used to hedge interest rate risk                                           |\n| **TAC Bond**                                        | Targeted Amortization Class; a CMO tranche designed to have more stable prepayment characteristics                                    |\n| **Tail Risk**                                       | The risk of rare, extreme events that have a small probability but large impact                                                       |\n| **Tenor**                                           | The time remaining until a bond's maturity                                                                                            |\n| **Term Structure**                                  | The relationship between bond yields and their time to maturity; often shown as a yield curve                                         |\n| **Trade Date**                                      | The date when a securities transaction is agreed upon                                                                                 |\n| **Tranche**                                         | A portion or layer of a CMO or other structured security with its own priority, coupon, and maturity                                  |\n| **Treasury Bond**                                   | A long-term debt security issued by the U.S. government; considered risk-free                                                         |\n| **Underwriter**                                     | A firm that buys securities from an issuer and sells them to investors                                                                |\n| **Underwriting Standards**                          | The criteria used to determine whether a borrower qualifies for a mortgage                                                            |\n| **WAC**                                             | Weighted Average Coupon; the average interest rate on mortgages in a pool, weighted by balance                                        |\n| **WAM**                                             | Weighted Average Maturity; the average remaining time to maturity of mortgages in a pool, weighted by balance                         |\n| **Yield**                                           | The annual return on a bond investment, expressed as a percentage                                                                     |\n| **Yield Curve**                                     | A graph showing bond yields at different maturities; shape indicates economic expectations                                            |\n| **Yield Spread**                                    | The difference in yield between two bonds, often indicating relative risk                                                             |\n| **Z-Tranche**                                       | An accrual bond in a CMO that receives no cash payments until earlier tranches are retired; interest accrues                          |\n"
+    },
+    {
+      "path": "02_occupancy/01_investment_share.md",
+      "text": "# Investment-property share\n\n![Investment-property share of LAR rows](01_investment_share.svg)\n\n## Commentary\n\n- Investment share bottomed at **5.00% in 2020**, then rose to **8.42% in 2025**.\n- The count peaked in 2021 (1.67 million) during the volume boom; the **share peaked later**, in 2025.\n- That pattern means investor activity held up better than owner-occupant refinances after rates rose.\n- Second-home share moved the opposite way over the same years, so the occupancy mix is polarizing toward principal vs. investment.\n"
+    },
+    {
+      "path": "02_occupancy/01_investment_share.svg",
+      "dataUrl": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MjAiIGhlaWdodD0iNDIwIiB2aWV3Qm94PSIwIDAgOTIwIDQyMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJJbnZlc3RtZW50IHByb3BlcnR5IHNoYXJlIj4KICA8cmVjdCB3aWR0aD0iOTIwIiBoZWlnaHQ9IjQyMCIgZmlsbD0iI2ZmZmZmZiIvPgogIAogIDx0ZXh0IHg9IjY0IiB5PSIyOCIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMWYyNzM2Ij5JbnZlc3RtZW50LXByb3BlcnR5IHNoYXJlIG9mIExBUiByb3dzPC90ZXh0PgogIDx0ZXh0IHg9Ijg4NCIgeT0iMjgiIHRleHQtYW5jaG9yPSJlbmQiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzhjOTdhYSI+cGVyY2VudCBvZiByZWNvcmRzPC90ZXh0PgogIDxsaW5lIHgxPSI2NCIgeTE9IjM2OC4wIiB4Mj0iODg0IiB5Mj0iMzY4LjAiIHN0cm9rZT0iI2RmZTRlYyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHRleHQgeD0iNTQiIHk9IjM3Mi4wIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjQlPC90ZXh0PjxsaW5lIHgxPSI2NCIgeTE9IjMxNC43IiB4Mj0iODg0IiB5Mj0iMzE0LjciIHN0cm9rZT0iI2RmZTRlYyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHRleHQgeD0iNTQiIHk9IjMxOC43IiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjUlPC90ZXh0PjxsaW5lIHgxPSI2NCIgeTE9IjI2MS4zIiB4Mj0iODg0IiB5Mj0iMjYxLjMiIHN0cm9rZT0iI2RmZTRlYyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHRleHQgeD0iNTQiIHk9IjI2NS4zIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjYlPC90ZXh0PjxsaW5lIHgxPSI2NCIgeTE9IjIwOC4wIiB4Mj0iODg0IiB5Mj0iMjA4LjAiIHN0cm9rZT0iI2RmZTRlYyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHRleHQgeD0iNTQiIHk9IjIxMi4wIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjclPC90ZXh0PjxsaW5lIHgxPSI2NCIgeTE9IjE1NC43IiB4Mj0iODg0IiB5Mj0iMTU0LjciIHN0cm9rZT0iI2RmZTRlYyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHRleHQgeD0iNTQiIHk9IjE1OC43IiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjglPC90ZXh0PjxsaW5lIHgxPSI2NCIgeTE9IjEwMS4zIiB4Mj0iODg0IiB5Mj0iMTAxLjMiIHN0cm9rZT0iI2RmZTRlYyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHRleHQgeD0iNTQiIHk9IjEwNS4zIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjklPC90ZXh0PjxsaW5lIHgxPSI2NCIgeTE9IjQ4LjAiIHgyPSI4ODQiIHkyPSI0OC4wIiBzdHJva2U9IiNkZmU0ZWMiIHN0cm9rZS13aWR0aD0iMSIvPjx0ZXh0IHg9IjU0IiB5PSI1Mi4wIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjEwJTwvdGV4dD4KICA8cGF0aCBkPSJNIDY0LjAsMjM3LjMgTCAxODEuMSwyNjYuMSBMIDI5OC4zLDMxNC43IEwgNDE1LjQsMjQwLjUgTCA1MzIuNiwxODcuNyBMIDY0OS43LDE5Ny4zIEwgNzY2LjksMTc3LjEgTCA4ODQuMCwxMzIuMyBMIDg4NC4wLDM2OC4wIEwgNjQuMCwzNjguMCBaIiBmaWxsPSIjYzQzZGZmIiBmaWxsLW9wYWNpdHk9IjAuMTIiLz4KICA8cGF0aCBkPSJNIDY0LjAsMjM3LjMgTCAxODEuMSwyNjYuMSBMIDI5OC4zLDMxNC43IEwgNDE1LjQsMjQwLjUgTCA1MzIuNiwxODcuNyBMIDY0OS43LDE5Ny4zIEwgNzY2LjksMTc3LjEgTCA4ODQuMCwxMzIuMyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzQzZGZmIiBzdHJva2Utd2lkdGg9IjMiLz4KICA8Y2lyY2xlIGN4PSI2NC4wIiBjeT0iMjM3LjMiIHI9IjUuNSIgZmlsbD0iI2M0M2RmZiIvPjx0ZXh0IHg9IjY0LjAiIHk9IjIyNS4zIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxZjI3MzYiPjYuNDU8L3RleHQ+CjxjaXJjbGUgY3g9IjE4MS4xIiBjeT0iMjY2LjEiIHI9IjUuNSIgZmlsbD0iI2M0M2RmZiIvPjx0ZXh0IHg9IjE4MS4xIiB5PSIyNTQuMSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIiBmaWxsPSIjMWYyNzM2Ij41LjkxPC90ZXh0Pgo8Y2lyY2xlIGN4PSIyOTguMyIgY3k9IjMxNC43IiByPSI1LjUiIGZpbGw9IiNjNDNkZmYiLz48dGV4dCB4PSIyOTguMyIgeT0iMzAyLjciIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzFmMjczNiI+NS4wMDwvdGV4dD4KPGNpcmNsZSBjeD0iNDE1LjQiIGN5PSIyNDAuNSIgcj0iNS41IiBmaWxsPSIjYzQzZGZmIi8+PHRleHQgeD0iNDE1LjQiIHk9IjIyOC41IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxZjI3MzYiPjYuMzk8L3RleHQ+CjxjaXJjbGUgY3g9IjUzMi42IiBjeT0iMTg3LjciIHI9IjUuNSIgZmlsbD0iI2M0M2RmZiIvPjx0ZXh0IHg9IjUzMi42IiB5PSIxNzUuNyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIiBmaWxsPSIjMWYyNzM2Ij43LjM4PC90ZXh0Pgo8Y2lyY2xlIGN4PSI2NDkuNyIgY3k9IjE5Ny4zIiByPSI1LjUiIGZpbGw9IiNjNDNkZmYiLz48dGV4dCB4PSI2NDkuNyIgeT0iMTg1LjMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzFmMjczNiI+Ny4yMDwvdGV4dD4KPGNpcmNsZSBjeD0iNzY2LjkiIGN5PSIxNzcuMSIgcj0iNS41IiBmaWxsPSIjYzQzZGZmIi8+PHRleHQgeD0iNzY2LjkiIHk9IjE2NS4xIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxZjI3MzYiPjcuNTg8L3RleHQ+CjxjaXJjbGUgY3g9Ijg4NC4wIiBjeT0iMTMyLjMiIHI9IjUuNSIgZmlsbD0iI2M0M2RmZiIvPjx0ZXh0IHg9Ijg4NC4wIiB5PSIxMjAuMyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIiBmaWxsPSIjMWYyNzM2Ij44LjQyPC90ZXh0PgogIDx0ZXh0IHg9IjY0LjAiIHk9IjQwMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4yMDE4PC90ZXh0Pgo8dGV4dCB4PSIxODEuMSIgeT0iNDAyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjIwMTk8L3RleHQ+Cjx0ZXh0IHg9IjI5OC4zIiB5PSI0MDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzY2NzM4OSI+MjAyMDwvdGV4dD4KPHRleHQgeD0iNDE1LjQiIHk9IjQwMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4yMDIxPC90ZXh0Pgo8dGV4dCB4PSI1MzIuNiIgeT0iNDAyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjIwMjI8L3RleHQ+Cjx0ZXh0IHg9IjY0OS43IiB5PSI0MDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzY2NzM4OSI+MjAyMzwvdGV4dD4KPHRleHQgeD0iNzY2LjkiIHk9IjQwMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4yMDI0PC90ZXh0Pgo8dGV4dCB4PSI4ODQuMCIgeT0iNDAyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjIwMjU8L3RleHQ+Cgo8L3N2Zz4K"
+    },
+    {
+      "path": "02_occupancy/02_occupancy_mix.md",
+      "text": "# Occupancy mix, 2018–2025\n\n![Occupancy mix of all LAR rows](02_occupancy_mix.svg)\n\n## Commentary\n\n- Principal residences dominate every modern year: **89.7% to 92.3%** of LAR rows.\n- Investment property is the only occupancy class that **gained share after 2020**.\n- Second homes are the smallest slice and **fell from 2.80% in 2018 to 1.87% in 2025**.\n- Coverage is complete: occupancy_type is populated on **100% of 137.7 million** 2018–2025 rows.\n"
+    },
+    {
+      "path": "02_occupancy/02_occupancy_mix.svg",
+      "dataUrl": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MjAiIGhlaWdodD0iNDIwIiB2aWV3Qm94PSIwIDAgOTIwIDQyMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJPY2N1cGFuY3kgbWl4IDIwMTgtMjAyNSI+CiAgPHJlY3Qgd2lkdGg9IjkyMCIgaGVpZ2h0PSI0MjAiIGZpbGw9IiNmZmZmZmYiLz4KICAKICA8dGV4dCB4PSI2NCIgeT0iMjgiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzFmMjczNiI+T2NjdXBhbmN5IG1peCBvZiBhbGwgTEFSIHJvd3M8L3RleHQ+CiAgPHRleHQgeD0iNzYwIiB5PSIyOCIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjOGM5N2FhIj5zaGFyZSBvZiByZWNvcmRzPC90ZXh0PgogIDxsaW5lIHgxPSI2NCIgeTE9IjM2OC4wIiB4Mj0iNzYwIiB5Mj0iMzY4LjAiIHN0cm9rZT0iI2RmZTRlYyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHRleHQgeD0iNTQiIHk9IjM3Mi4wIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjAlPC90ZXh0PjxsaW5lIHgxPSI2NCIgeTE9IjMwNS42IiB4Mj0iNzYwIiB5Mj0iMzA1LjYiIHN0cm9rZT0iI2RmZTRlYyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHRleHQgeD0iNTQiIHk9IjMwOS42IiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjIwJTwvdGV4dD48bGluZSB4MT0iNjQiIHkxPSIyNDMuMiIgeDI9Ijc2MCIgeTI9IjI0My4yIiBzdHJva2U9IiNkZmU0ZWMiIHN0cm9rZS13aWR0aD0iMSIvPjx0ZXh0IHg9IjU0IiB5PSIyNDcuMiIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij40MCU8L3RleHQ+PGxpbmUgeDE9IjY0IiB5MT0iMTgwLjgiIHgyPSI3NjAiIHkyPSIxODAuOCIgc3Ryb2tlPSIjZGZlNGVjIiBzdHJva2Utd2lkdGg9IjEiLz48dGV4dCB4PSI1NCIgeT0iMTg0LjgiIHRleHQtYW5jaG9yPSJlbmQiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzY2NzM4OSI+NjAlPC90ZXh0PjxsaW5lIHgxPSI2NCIgeTE9IjExOC40IiB4Mj0iNzYwIiB5Mj0iMTE4LjQiIHN0cm9rZT0iI2RmZTRlYyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHRleHQgeD0iNTQiIHk9IjEyMi40IiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjgwJTwvdGV4dD48bGluZSB4MT0iNjQiIHkxPSI1Ni4wIiB4Mj0iNzYwIiB5Mj0iNTYuMCIgc3Ryb2tlPSIjZGZlNGVjIiBzdHJva2Utd2lkdGg9IjEiLz48dGV4dCB4PSI1NCIgeT0iNjAuMCIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4xMDAlPC90ZXh0PgogIDxyZWN0IHg9IjY0LjAiIHk9Ijg0LjkiIHdpZHRoPSI3NC44IiBoZWlnaHQ9IjI4My4xIiBmaWxsPSIjMWYyNzM2Ii8+PHJlY3QgeD0iNjQuMCIgeT0iNzYuMSIgd2lkdGg9Ijc0LjgiIGhlaWdodD0iOC43IiBmaWxsPSIjOGM5N2FhIi8+PHJlY3QgeD0iNjQuMCIgeT0iNTYuMCIgd2lkdGg9Ijc0LjgiIGhlaWdodD0iMjAuMSIgZmlsbD0iI2M0M2RmZiIvPjx0ZXh0IHg9IjEwMS40IiB5PSI0MDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzY2NzM4OSI+MjAxODwvdGV4dD48cmVjdCB4PSIxNTIuOCIgeT0iODIuNiIgd2lkdGg9Ijc0LjgiIGhlaWdodD0iMjg1LjQiIGZpbGw9IiMxZjI3MzYiLz48cmVjdCB4PSIxNTIuOCIgeT0iNzQuNCIgd2lkdGg9Ijc0LjgiIGhlaWdodD0iOC4yIiBmaWxsPSIjOGM5N2FhIi8+PHJlY3QgeD0iMTUyLjgiIHk9IjU2LjAiIHdpZHRoPSI3NC44IiBoZWlnaHQ9IjE4LjQiIGZpbGw9IiNjNDNkZmYiLz48dGV4dCB4PSIxOTAuMSIgeT0iNDAyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjIwMTk8L3RleHQ+PHJlY3QgeD0iMjQxLjUiIHk9IjgwLjAiIHdpZHRoPSI3NC44IiBoZWlnaHQ9IjI4OC4wIiBmaWxsPSIjMWYyNzM2Ii8+PHJlY3QgeD0iMjQxLjUiIHk9IjcxLjYiIHdpZHRoPSI3NC44IiBoZWlnaHQ9IjguNCIgZmlsbD0iIzhjOTdhYSIvPjxyZWN0IHg9IjI0MS41IiB5PSI1Ni4wIiB3aWR0aD0iNzQuOCIgaGVpZ2h0PSIxNS42IiBmaWxsPSIjYzQzZGZmIi8+PHRleHQgeD0iMjc4LjkiIHk9IjQwMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4yMDIwPC90ZXh0PjxyZWN0IHg9IjMzMC4yIiB5PSI4NC43IiB3aWR0aD0iNzQuOCIgaGVpZ2h0PSIyODMuMyIgZmlsbD0iIzFmMjczNiIvPjxyZWN0IHg9IjMzMC4yIiB5PSI3NS45IiB3aWR0aD0iNzQuOCIgaGVpZ2h0PSI4LjciIGZpbGw9IiM4Yzk3YWEiLz48cmVjdCB4PSIzMzAuMiIgeT0iNTYuMCIgd2lkdGg9Ijc0LjgiIGhlaWdodD0iMTkuOSIgZmlsbD0iI2M0M2RmZiIvPjx0ZXh0IHg9IjM2Ny42IiB5PSI0MDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzY2NzM4OSI+MjAyMTwvdGV4dD48cmVjdCB4PSI0MTkuMCIgeT0iODYuNyIgd2lkdGg9Ijc0LjgiIGhlaWdodD0iMjgxLjMiIGZpbGw9IiMxZjI3MzYiLz48cmVjdCB4PSI0MTkuMCIgeT0iNzkuMCIgd2lkdGg9Ijc0LjgiIGhlaWdodD0iNy43IiBmaWxsPSIjOGM5N2FhIi8+PHJlY3QgeD0iNDE5LjAiIHk9IjU2LjAiIHdpZHRoPSI3NC44IiBoZWlnaHQ9IjIzLjAiIGZpbGw9IiNjNDNkZmYiLz48dGV4dCB4PSI0NTYuNCIgeT0iNDAyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjIwMjI8L3RleHQ+PHJlY3QgeD0iNTA3LjgiIHk9Ijg1LjEiIHdpZHRoPSI3NC44IiBoZWlnaHQ9IjI4Mi45IiBmaWxsPSIjMWYyNzM2Ii8+PHJlY3QgeD0iNTA3LjgiIHk9Ijc4LjUiIHdpZHRoPSI3NC44IiBoZWlnaHQ9IjYuNiIgZmlsbD0iIzhjOTdhYSIvPjxyZWN0IHg9IjUwNy44IiB5PSI1Ni4wIiB3aWR0aD0iNzQuOCIgaGVpZ2h0PSIyMi41IiBmaWxsPSIjYzQzZGZmIi8+PHRleHQgeD0iNTQ1LjEiIHk9IjQwMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4yMDIzPC90ZXh0PjxyZWN0IHg9IjU5Ni41IiB5PSI4NS42IiB3aWR0aD0iNzQuOCIgaGVpZ2h0PSIyODIuNCIgZmlsbD0iIzFmMjczNiIvPjxyZWN0IHg9IjU5Ni41IiB5PSI3OS42IiB3aWR0aD0iNzQuOCIgaGVpZ2h0PSI1LjkiIGZpbGw9IiM4Yzk3YWEiLz48cmVjdCB4PSI1OTYuNSIgeT0iNTYuMCIgd2lkdGg9Ijc0LjgiIGhlaWdodD0iMjMuNiIgZmlsbD0iI2M0M2RmZiIvPjx0ZXh0IHg9IjYzMy45IiB5PSI0MDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzY2NzM4OSI+MjAyNDwvdGV4dD48cmVjdCB4PSI2ODUuMiIgeT0iODguMSIgd2lkdGg9Ijc0LjgiIGhlaWdodD0iMjc5LjkiIGZpbGw9IiMxZjI3MzYiLz48cmVjdCB4PSI2ODUuMiIgeT0iODIuMyIgd2lkdGg9Ijc0LjgiIGhlaWdodD0iNS44IiBmaWxsPSIjOGM5N2FhIi8+PHJlY3QgeD0iNjg1LjIiIHk9IjU2LjAiIHdpZHRoPSI3NC44IiBoZWlnaHQ9IjI2LjMiIGZpbGw9IiNjNDNkZmYiLz48dGV4dCB4PSI3MjIuNiIgeT0iNDAyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjIwMjU8L3RleHQ+CiAgCiAgPHJlY3QgeD0iNzcyIiB5PSI3MCIgd2lkdGg9IjEyIiBoZWlnaHQ9IjEyIiBmaWxsPSIjMWYyNzM2Ii8+CiAgPHRleHQgeD0iNzkwIiB5PSI4MSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjMWYyNzM2Ij5QcmluY2lwYWw8L3RleHQ+CiAgPHJlY3QgeD0iNzcyIiB5PSI5NCIgd2lkdGg9IjEyIiBoZWlnaHQ9IjEyIiBmaWxsPSIjOGM5N2FhIi8+CiAgPHRleHQgeD0iNzkwIiB5PSIxMDUiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzFmMjczNiI+U2Vjb25kIGhvbWU8L3RleHQ+CiAgPHJlY3QgeD0iNzcyIiB5PSIxMTgiIHdpZHRoPSIxMiIgaGVpZ2h0PSIxMiIgZmlsbD0iI2M0M2RmZiIvPgogIDx0ZXh0IHg9Ijc5MCIgeT0iMTI5IiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMxZjI3MzYiPkludmVzdG1lbnQ8L3RleHQ+CgoKPC9zdmc+Cg=="
+    },
+    {
+      "path": "03_originations/01_action_taken.md",
+      "text": "# Action taken, 2007–2025\n\n![Action taken, all U.S. LAR records 2007–2025](01_action_taken.svg)\n\n## Commentary\n\n- **Originated loans are about half** of all LAR records over 2007–2025 (50.1%).\n- Denials (16.0%) plus withdrawals (10.7%) together are larger than purchased loans (14.7%).\n- Purchased loans (code 6) are secondary-market buys, not this lender’s underwriting decision.\n- Preapproval outcomes are small in the national mix (under 1.2% combined).\n"
+    },
+    {
+      "path": "03_originations/01_action_taken.svg",
+      "dataUrl": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MjAiIGhlaWdodD0iNDYwIiB2aWV3Qm94PSIwIDAgOTIwIDQ2MCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBY3Rpb24gdGFrZW4gZGlzdHJpYnV0aW9uIj4KICA8cmVjdCB3aWR0aD0iOTIwIiBoZWlnaHQ9IjQ2MCIgZmlsbD0iI2ZmZmZmZiIvPgogIAogIDx0ZXh0IHg9IjI1MCIgeT0iMjgiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzFmMjczNiI+QWN0aW9uIHRha2VuLCBhbGwgVS5TLiBMQVIgcmVjb3JkcyAyMDA34oCTMjAyNTwvdGV4dD4KICA8cmVjdCB4PSIyNTAiIHk9IjQ4LjAiIHdpZHRoPSI1NDYuNCIgaGVpZ2h0PSIzOS4yIiByeD0iMyIgZmlsbD0iI2M0M2RmZiIvPjx0ZXh0IHg9IjIzOCIgeT0iNzQuNyIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzIiBmaWxsPSIjMWYyNzM2Ij5PcmlnaW5hdGVkICgxKTwvdGV4dD48dGV4dCB4PSI4MDQuNCIgeT0iNzQuNyIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij41MC4wOSU8L3RleHQ+PHJlY3QgeD0iMjUwIiB5PSI5Ny4yIiB3aWR0aD0iMTc0LjAiIGhlaWdodD0iMzkuMiIgcng9IjMiIGZpbGw9IiM1YjZiZmYiLz48dGV4dCB4PSIyMzgiIHk9IjEyMy45IiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGZpbGw9IiMxZjI3MzYiPkRlbmllZCAoMyk8L3RleHQ+PHRleHQgeD0iNDMyLjAiIHk9IjEyMy45IiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjE1Ljk1JTwvdGV4dD48cmVjdCB4PSIyNTAiIHk9IjE0Ni41IiB3aWR0aD0iMTYwLjEiIGhlaWdodD0iMzkuMiIgcng9IjMiIGZpbGw9IiM1YjZiZmYiLz48dGV4dCB4PSIyMzgiIHk9IjE3My4yIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGZpbGw9IiMxZjI3MzYiPlB1cmNoYXNlZCAoNik8L3RleHQ+PHRleHQgeD0iNDE4LjEiIHk9IjE3My4yIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjE0LjY4JTwvdGV4dD48cmVjdCB4PSIyNTAiIHk9IjE5NS44IiB3aWR0aD0iMTE2LjUiIGhlaWdodD0iMzkuMiIgcng9IjMiIGZpbGw9IiM1YjZiZmYiLz48dGV4dCB4PSIyMzgiIHk9IjIyMi40IiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiIGZpbGw9IiMxZjI3MzYiPldpdGhkcmF3biAoNCk8L3RleHQ+PHRleHQgeD0iMzc0LjUiIHk9IjIyMi40IiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjEwLjY4JTwvdGV4dD48cmVjdCB4PSIyNTAiIHk9IjI0NS4wIiB3aWR0aD0iNDEuMyIgaGVpZ2h0PSIzOS4yIiByeD0iMyIgZmlsbD0iI2M1Y2NkOCIvPjx0ZXh0IHg9IjIzOCIgeT0iMjcxLjciIHRleHQtYW5jaG9yPSJlbmQiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMyIgZmlsbD0iIzFmMjczNiI+SW5jb21wbGV0ZSAoNSk8L3RleHQ+PHRleHQgeD0iMjk5LjMiIHk9IjI3MS43IiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjMuNzklPC90ZXh0PjxyZWN0IHg9IjI1MCIgeT0iMjk0LjIiIHdpZHRoPSIzOS42IiBoZWlnaHQ9IjM5LjIiIHJ4PSIzIiBmaWxsPSIjYzVjY2Q4Ii8+PHRleHQgeD0iMjM4IiB5PSIzMjAuOSIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzIiBmaWxsPSIjMWYyNzM2Ij5BcHByb3ZlZCwgbm90IGFjY2VwdGVkICgyKTwvdGV4dD48dGV4dCB4PSIyOTcuNiIgeT0iMzIwLjkiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzY2NzM4OSI+My42MyU8L3RleHQ+PHJlY3QgeD0iMjUwIiB5PSIzNDMuNSIgd2lkdGg9IjcuMSIgaGVpZ2h0PSIzOS4yIiByeD0iMyIgZmlsbD0iI2M1Y2NkOCIvPjx0ZXh0IHg9IjIzOCIgeT0iMzcwLjIiIHRleHQtYW5jaG9yPSJlbmQiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMyIgZmlsbD0iIzFmMjczNiI+UHJlYXBwcm92YWwgZGVuaWVkICg3KTwvdGV4dD48dGV4dCB4PSIyNjUuMSIgeT0iMzcwLjIiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzY2NzM4OSI+MC42NSU8L3RleHQ+PHJlY3QgeD0iMjUwIiB5PSIzOTIuOCIgd2lkdGg9IjUuOSIgaGVpZ2h0PSIzOS4yIiByeD0iMyIgZmlsbD0iI2M1Y2NkOCIvPjx0ZXh0IHg9IjIzOCIgeT0iNDE5LjQiIHRleHQtYW5jaG9yPSJlbmQiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMyIgZmlsbD0iIzFmMjczNiI+UHJlYXBwcm92YWwgYXBwcm92ZWQgTkEgKDgpPC90ZXh0Pjx0ZXh0IHg9IjI2My45IiB5PSI0MTkuNCIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4wLjU0JTwvdGV4dD4KCjwvc3ZnPgo="
+    },
+    {
+      "path": "03_originations/02_lar_volume.md",
+      "text": "# LAR volume, 2018–2025\n\n![HMDA LAR volume, 2018–2025](02_lar_volume.svg)\n\n## Commentary\n\n- Total LAR rows peaked in **2021 at 26.1 million**, then dropped to **11.5 million in 2023**.\n- The 2020–2021 spike is the refinance wave; 2022–2023 is the rate-shock contraction.\n- 2024–2025 show a modest rebound (12.2m then 13.5m), still far below the 2021 peak.\n- This series counts **every LAR row**, not originated loans only, so it tracks application and purchase activity together.\n"
+    },
+    {
+      "path": "03_originations/02_lar_volume.svg",
+      "dataUrl": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MjAiIGhlaWdodD0iNDIwIiB2aWV3Qm94PSIwIDAgOTIwIDQyMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJITURBIExBUiB2b2x1bWUgMjAxOC0yMDI1Ij4KICA8cmVjdCB3aWR0aD0iOTIwIiBoZWlnaHQ9IjQyMCIgZmlsbD0iI2ZmZmZmZiIvPgogIAogIDx0ZXh0IHg9IjY0IiB5PSIyOCIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMWYyNzM2Ij5ITURBIExBUiB2b2x1bWUsIDIwMTjigJMyMDI1PC90ZXh0PgogIDx0ZXh0IHg9Ijg4NCIgeT0iMjgiIHRleHQtYW5jaG9yPSJlbmQiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzhjOTdhYSI+bWlsbGlvbiByZWNvcmRzPC90ZXh0PgogIDxsaW5lIHgxPSI2NCIgeTE9IjM2OC4wIiB4Mj0iODg0IiB5Mj0iMzY4LjAiIHN0cm9rZT0iI2RmZTRlYyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHRleHQgeD0iNTQiIHk9IjM3Mi4wIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjA8L3RleHQ+PGxpbmUgeDE9IjY0IiB5MT0iMzE0LjciIHgyPSI4ODQiIHkyPSIzMTQuNyIgc3Ryb2tlPSIjZGZlNGVjIiBzdHJva2Utd2lkdGg9IjEiLz48dGV4dCB4PSI1NCIgeT0iMzE4LjciIHRleHQtYW5jaG9yPSJlbmQiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzY2NzM4OSI+NTwvdGV4dD48bGluZSB4MT0iNjQiIHkxPSIyNjEuMyIgeDI9Ijg4NCIgeTI9IjI2MS4zIiBzdHJva2U9IiNkZmU0ZWMiIHN0cm9rZS13aWR0aD0iMSIvPjx0ZXh0IHg9IjU0IiB5PSIyNjUuMyIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4xMDwvdGV4dD48bGluZSB4MT0iNjQiIHkxPSIyMDguMCIgeDI9Ijg4NCIgeTI9IjIwOC4wIiBzdHJva2U9IiNkZmU0ZWMiIHN0cm9rZS13aWR0aD0iMSIvPjx0ZXh0IHg9IjU0IiB5PSIyMTIuMCIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4xNTwvdGV4dD48bGluZSB4MT0iNjQiIHkxPSIxNTQuNyIgeDI9Ijg4NCIgeTI9IjE1NC43IiBzdHJva2U9IiNkZmU0ZWMiIHN0cm9rZS13aWR0aD0iMSIvPjx0ZXh0IHg9IjU0IiB5PSIxNTguNyIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4yMDwvdGV4dD48bGluZSB4MT0iNjQiIHkxPSIxMDEuMyIgeDI9Ijg4NCIgeTI9IjEwMS4zIiBzdHJva2U9IiNkZmU0ZWMiIHN0cm9rZS13aWR0aD0iMSIvPjx0ZXh0IHg9IjU0IiB5PSIxMDUuMyIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4yNTwvdGV4dD48bGluZSB4MT0iNjQiIHkxPSI0OC4wIiB4Mj0iODg0IiB5Mj0iNDguMCIgc3Ryb2tlPSIjZGZlNGVjIiBzdHJva2Utd2lkdGg9IjEiLz48dGV4dCB4PSI1NCIgeT0iNTIuMCIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4zMDwvdGV4dD4KICA8cGF0aCBkPSJNIDY0LjAsMjA2LjcgTCAxODEuMSwxODAuOCBMIDI5OC4zLDk1LjUgTCA0MTUuNCw4OS40IEwgNTMyLjYsMTk2LjUgTCA2NDkuNywyNDUuNSBMIDc2Ni45LDIzNy41IEwgODg0LjAsMjIzLjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M0M2RmZiIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgPGNpcmNsZSBjeD0iNjQuMCIgY3k9IjIwNi43IiByPSI1LjUiIGZpbGw9IiNjNDNkZmYiLz48dGV4dCB4PSI2NC4wIiB5PSIxOTQuNyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIiBmaWxsPSIjMWYyNzM2Ij4xNS4xPC90ZXh0Pgo8Y2lyY2xlIGN4PSIxODEuMSIgY3k9IjE4MC44IiByPSI1LjUiIGZpbGw9IiNjNDNkZmYiLz48dGV4dCB4PSIxODEuMSIgeT0iMTY4LjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzFmMjczNiI+MTcuNjwvdGV4dD4KPGNpcmNsZSBjeD0iMjk4LjMiIGN5PSI5NS41IiByPSI1LjUiIGZpbGw9IiNjNDNkZmYiLz48dGV4dCB4PSIyOTguMyIgeT0iODMuNSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIiBmaWxsPSIjMWYyNzM2Ij4yNS42PC90ZXh0Pgo8Y2lyY2xlIGN4PSI0MTUuNCIgY3k9Ijg5LjQiIHI9IjUuNSIgZmlsbD0iI2M0M2RmZiIvPjx0ZXh0IHg9IjQxNS40IiB5PSI3Ny40IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxZjI3MzYiPjI2LjE8L3RleHQ+CjxjaXJjbGUgY3g9IjUzMi42IiBjeT0iMTk2LjUiIHI9IjUuNSIgZmlsbD0iI2M0M2RmZiIvPjx0ZXh0IHg9IjUzMi42IiB5PSIxODQuNSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIiBmaWxsPSIjMWYyNzM2Ij4xNi4xPC90ZXh0Pgo8Y2lyY2xlIGN4PSI2NDkuNyIgY3k9IjI0NS41IiByPSI1LjUiIGZpbGw9IiNjNDNkZmYiLz48dGV4dCB4PSI2NDkuNyIgeT0iMjMzLjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzFmMjczNiI+MTEuNTwvdGV4dD4KPGNpcmNsZSBjeD0iNzY2LjkiIGN5PSIyMzcuNSIgcj0iNS41IiBmaWxsPSIjYzQzZGZmIi8+PHRleHQgeD0iNzY2LjkiIHk9IjIyNS41IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxZjI3MzYiPjEyLjI8L3RleHQ+CjxjaXJjbGUgY3g9Ijg4NC4wIiBjeT0iMjIzLjYiIHI9IjUuNSIgZmlsbD0iI2M0M2RmZiIvPjx0ZXh0IHg9Ijg4NC4wIiB5PSIyMTEuNiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIiBmaWxsPSIjMWYyNzM2Ij4xMy41PC90ZXh0PgogIDx0ZXh0IHg9IjY0LjAiIHk9IjQwMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4yMDE4PC90ZXh0Pgo8dGV4dCB4PSIxODEuMSIgeT0iNDAyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjIwMTk8L3RleHQ+Cjx0ZXh0IHg9IjI5OC4zIiB5PSI0MDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzY2NzM4OSI+MjAyMDwvdGV4dD4KPHRleHQgeD0iNDE1LjQiIHk9IjQwMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4yMDIxPC90ZXh0Pgo8dGV4dCB4PSI1MzIuNiIgeT0iNDAyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjIwMjI8L3RleHQ+Cjx0ZXh0IHg9IjY0OS43IiB5PSI0MDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJMYXRvLCBTZWdvZSBVSSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzY2NzM4OSI+MjAyMzwvdGV4dD4KPHRleHQgeD0iNzY2LjkiIHk9IjQwMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkxhdG8sIFNlZ29lIFVJLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY3Mzg5Ij4yMDI0PC90ZXh0Pgo8dGV4dCB4PSI4ODQuMCIgeT0iNDAyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iTGF0bywgU2Vnb2UgVUksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2NjczODkiPjIwMjU8L3RleHQ+Cgo8L3N2Zz4K"
+    }
+  ]
+}
+    </script>
+    <!-- EMBEDDED_FOLDER_END -->
+    <script>
+      const IMAGE_EXT = /\.(svg|png|jpe?g|gif|webp)$/i;
+      const MD_EXT = /\.md$/i;
+
+      const sectionNav = document.getElementById("sectionNav");
+      const itemNav = document.getElementById("itemNav");
+      const brandTitle = document.getElementById("brandTitle");
+      const mobileContextTitle = document.getElementById("mobileContextTitle");
+      const articleBody = document.getElementById("articleBody");
+      const articleEyebrow = document.getElementById("articleEyebrow");
+      const articleTitle = document.getElementById("articleTitle");
+      const articleFigure = document.getElementById("articleFigure");
+      const articleImage = document.getElementById("articleImage");
+      const articleCommentary = document.getElementById("articleCommentary");
+      const articleMarkdown = document.getElementById("articleMarkdown");
+      const menuToggle = document.getElementById("menuToggle");
+      const backdrop = document.getElementById("backdrop");
+
+      const state = {
+        title: "Markdown folder",
+        data: null,
+        section: null,
+        item: null
+      };
+
+      function slug(value) {
+        return String(value || "")
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "") || "item";
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function displayName(value) {
+        return String(value || "")
+          .replace(/\.md$/i, "")
+          .replace(/_/g, " ");
+      }
+
+      function inlineMarkdown(value) {
+        return escapeHtml(value).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+      }
+
+      function splitTableRow(line) {
+        return String(line || "")
+          .trim()
+          .replace(/^\|/, "")
+          .replace(/\|$/, "")
+          .split("|")
+          .map((cell) => cell.trim());
+      }
+
+      function isTableSeparator(line) {
+        return /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/.test(line);
+      }
+
+      function markdownToHtml(text) {
+        const lines = String(text || "").split(/\r?\n/);
+        const html = [];
+        const paragraph = [];
+        let i = 0;
+        let skippedTitle = false;
+
+        function flushParagraph() {
+          const value = paragraph.join(" ").trim();
+          paragraph.length = 0;
+          if (value) {
+            html.push("<p>" + inlineMarkdown(value) + "</p>");
+          }
+        }
+
+        while (i < lines.length) {
+          const trimmed = lines[i].trim();
+          if (!skippedTitle && /^#\s+/.test(trimmed)) {
+            skippedTitle = true;
+            i += 1;
+            continue;
+          }
+          if (/^!\[[^\]]*\]\([^)]+\)/.test(trimmed)) {
+            i += 1;
+            continue;
+          }
+          if (!trimmed) {
+            flushParagraph();
+            i += 1;
+            continue;
+          }
+          if (/^---+$/.test(trimmed)) {
+            flushParagraph();
+            html.push("<hr>");
+            i += 1;
+            continue;
+          }
+          if (/^##\s+/.test(trimmed)) {
+            flushParagraph();
+            html.push("<h2>" + inlineMarkdown(trimmed.replace(/^##\s+/, "")) + "</h2>");
+            i += 1;
+            continue;
+          }
+          if (trimmed.includes("|") && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+            flushParagraph();
+            const header = splitTableRow(trimmed);
+            i += 2;
+            const rows = [];
+            while (i < lines.length && lines[i].includes("|") && !isTableSeparator(lines[i])) {
+              if (lines[i].trim()) {
+                rows.push(splitTableRow(lines[i]));
+              }
+              i += 1;
+            }
+            html.push(
+              "<table><thead><tr>" +
+                header.map((cell) => "<th>" + inlineMarkdown(cell) + "</th>").join("") +
+                "</tr></thead><tbody>" +
+                rows
+                  .map(
+                    (row) =>
+                      "<tr>" +
+                      row.map((cell) => "<td>" + inlineMarkdown(cell) + "</td>").join("") +
+                      "</tr>"
+                  )
+                  .join("") +
+                "</tbody></table>"
+            );
+            continue;
+          }
+          if (/^[-*+]\s+/.test(trimmed)) {
+            flushParagraph();
+            const items = [];
+            while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) {
+              items.push("<li>" + inlineMarkdown(lines[i].replace(/^\s*[-*+]\s+/, "").trim()) + "</li>");
+              i += 1;
+            }
+            html.push("<ul>" + items.join("") + "</ul>");
+            continue;
+          }
+          paragraph.push(trimmed);
+          i += 1;
+        }
+        flushParagraph();
+        return html.join("");
+      }
+
+      function parseMarkdown(text, fileName) {
+        const titleMatch = text.match(/^#\s+(.+)$/m);
+        const imageMatch = text.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+        const bullets = [];
+        text.split(/\r?\n/).forEach((line) => {
+          const match = line.match(/^\s*[-*+]\s+(.+)/);
+          if (match) {
+            bullets.push(match[1].trim());
+          }
+        });
+        return {
+          title: titleMatch ? titleMatch[1].trim() : fileName.replace(/\.md$/i, ""),
+          imageAlt: imageMatch ? imageMatch[1].trim() : "",
+          imageRel: imageMatch ? imageMatch[2].trim().replace(/^<|>$/g, "").split(/\s+/)[0] : "",
+          bullets,
+          hasTable: /^\s*\|.+\|\s*$/m.test(text),
+          bodyHtml: markdownToHtml(text)
+        };
+      }
+
+      function normalizePath(value) {
+        return String(value || "")
+          .replace(/\\/g, "/")
+          .replace(/^\.\//, "")
+          .replace(/\/+/g, "/");
+      }
+
+      function dirname(path) {
+        const parts = normalizePath(path).split("/");
+        parts.pop();
+        return parts.join("/");
+      }
+
+      function joinPath(base, rel) {
+        const cleaned = normalizePath(rel).replace(/^\//, "");
+        if (!base) {
+          return cleaned;
+        }
+        const stack = base.split("/").filter(Boolean);
+        cleaned.split("/").forEach((part) => {
+          if (part === "..") {
+            stack.pop();
+          } else if (part && part !== ".") {
+            stack.push(part);
+          }
+        });
+        return stack.join("/");
+      }
+
+      function folderFromPath(relPath, rootName) {
+        const parts = normalizePath(relPath).split("/").filter(Boolean);
+        if (parts.length >= 3) {
+          return parts[parts.length - 2];
+        }
+        if (parts.length === 2) {
+          return parts[0] === rootName ? rootName : parts[0];
+        }
+        return rootName || "files";
+      }
+
+      function renderBrandTitle() {
+        const words = String(state.title || "Markdown folder").split(/\s+/).filter(Boolean);
+        const first = words.slice(0, Math.max(1, words.length - 1)).join(" ") || "Markdown";
+        const last = words.length > 1 ? words[words.length - 1] : "folder";
+        brandTitle.innerHTML =
+          '<div class="brand-title"><span class="brand-word">' +
+          escapeHtml(first) +
+          '</span><span class="brand-word accent">' +
+          escapeHtml(last) +
+          "</span></div>";
+        mobileContextTitle.textContent = state.title;
+      }
+
+      function currentSection() {
+        return state.data.sections.find((section) => section.key === state.section) || state.data.sections[0];
+      }
+
+      function currentItem() {
+        return currentSection().items.find((item) => item.id === state.item) || currentSection().items[0];
+      }
+
+      function renderSectionNav() {
+        sectionNav.innerHTML = state.data.sections
+          .map((section) => {
+            const active = section.key === state.section ? " active" : "";
+            return (
+              '<a class="section-link' +
+              active +
+              '" href="#' +
+              section.key +
+              '" data-section="' +
+              section.key +
+              '">' +
+              escapeHtml(displayName(section.label)) +
+              "</a>"
+            );
+          })
+          .join("");
+
+        sectionNav.querySelectorAll("[data-section]").forEach((link) => {
+          link.addEventListener("click", (event) => {
+            event.preventDefault();
+            state.section = event.currentTarget.dataset.section;
+            state.item = currentSection().items[0].id;
+            render();
+          });
+        });
+      }
+
+      function renderItemNav() {
+        const items = currentSection().items;
+        itemNav.innerHTML = items
+          .map((item) => {
+            const active = item.id === state.item ? " active" : "";
+            return (
+              '<li><a class="toc-link' +
+              active +
+              '" href="#' +
+              currentSection().key +
+              "/" +
+              item.id +
+              '" data-item="' +
+              item.id +
+              '">' +
+              escapeHtml(displayName(item.fileName)) +
+              "</a></li>"
+            );
+          })
+          .join("");
+
+        itemNav.querySelectorAll("[data-item]").forEach((link) => {
+          link.addEventListener("click", (event) => {
+            event.preventDefault();
+            state.item = event.currentTarget.dataset.item;
+            renderArticle();
+            renderItemNav();
+            syncHash();
+            document.body.classList.remove("nav-open");
+          });
+        });
+      }
+
+      function renderArticle() {
+        const item = currentItem();
+        const section = currentSection();
+        articleEyebrow.textContent = displayName(section.label);
+        articleTitle.textContent = item.title;
+
+        if (item.imageSrc) {
+          articleFigure.classList.remove("hidden");
+          articleImage.src = item.imageSrc;
+          articleImage.alt = item.imageAlt || item.title;
+        } else {
+          articleFigure.classList.add("hidden");
+          articleImage.removeAttribute("src");
+          articleImage.alt = "";
+        }
+
+        if (item.hasTable && item.bodyHtml) {
+          articleCommentary.classList.add("hidden");
+          articleCommentary.innerHTML = "";
+          articleMarkdown.classList.remove("hidden");
+          articleMarkdown.innerHTML = item.bodyHtml;
+        } else {
+          articleMarkdown.classList.add("hidden");
+          articleMarkdown.innerHTML = "";
+          articleCommentary.classList.remove("hidden");
+          articleCommentary.innerHTML = item.bullets.length
+            ? item.bullets.map((bullet) => "<li>" + inlineMarkdown(bullet) + "</li>").join("")
+            : "<li>No commentary found in this Markdown file.</li>";
+        }
+      }
+
+      function syncHash() {
+        window.location.hash = currentSection().key + "/" + state.item;
+      }
+
+      function hydrateFromHash() {
+        const raw = window.location.hash.replace(/^#/, "");
+        if (!raw || !state.data) {
+          return;
+        }
+        const [sectionKey, itemId] = raw.split("/");
+        const section = state.data.sections.find((entry) => entry.key === sectionKey);
+        if (!section) {
+          return;
+        }
+        state.section = section.key;
+        if (itemId && section.items.some((item) => item.id === itemId)) {
+          state.item = itemId;
+        } else {
+          state.item = section.items[0].id;
+        }
+      }
+
+      function render() {
+        articleBody.classList.remove("hidden");
+        renderBrandTitle();
+        renderSectionNav();
+        renderItemNav();
+        renderArticle();
+        syncHash();
+        document.body.classList.remove("nav-open");
+      }
+
+      function lookupAsset(path, assets) {
+        const exact = normalizePath(path);
+        if (assets[exact]) {
+          return assets[exact];
+        }
+        const lower = exact.toLowerCase();
+        const match = Object.keys(assets).find((key) => key.toLowerCase() === lower);
+        if (match) {
+          return assets[match];
+        }
+        const base = exact.split("/").pop();
+        const byBase = Object.keys(assets).filter((key) => key.split("/").pop().toLowerCase() === base.toLowerCase());
+        return byBase.length === 1 ? assets[byBase[0]] : "";
+      }
+
+      function buildLibrary(markdownFiles, assets, rootName) {
+        const grouped = new Map();
+        markdownFiles.forEach((entry) => {
+          const folder = folderFromPath(entry.path, rootName);
+          if (!grouped.has(folder)) {
+            grouped.set(folder, []);
+          }
+          const parsed = parseMarkdown(entry.text, entry.fileName);
+          const imagePath = parsed.imageRel
+            ? joinPath(dirname(entry.path), parsed.imageRel)
+            : "";
+          grouped.get(folder).push({
+            id: slug(entry.fileName.replace(/\.md$/i, "")),
+            fileName: entry.fileName,
+            title: parsed.title,
+            imageAlt: parsed.imageAlt,
+            imageSrc: imagePath ? lookupAsset(imagePath, assets) : "",
+            bullets: parsed.bullets,
+            hasTable: parsed.hasTable,
+            bodyHtml: parsed.bodyHtml
+          });
+        });
+
+        const sections = Array.from(grouped.entries())
+          .sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }))
+          .map(([label, items]) => ({
+            key: slug(label),
+            label,
+            items
+          }));
+
+        if (!sections.length) {
+          throw new Error("No Markdown files found in that folder.");
+        }
+
+        state.title = rootName.replace(/[_-]+/g, " ") || "Markdown folder";
+        state.data = { sections };
+        state.section = sections[0].key;
+        state.item = sections[0].items[0].id;
+        hydrateFromHash();
+        render();
+      }
+
+      function loadFromEntries(entries, rootName) {
+        const assets = {};
+        const markdownFiles = [];
+        (entries || []).forEach((entry) => {
+          const path = normalizePath(entry.path);
+          if (!path) {
+            return;
+          }
+          if (typeof entry.text === "string" && MD_EXT.test(path)) {
+            markdownFiles.push({
+              path,
+              fileName: path.split("/").pop(),
+              text: entry.text
+            });
+          } else if ((entry.dataUrl || entry.url) && IMAGE_EXT.test(path)) {
+            assets[path] = entry.dataUrl || entry.url;
+          }
+        });
+        if (!markdownFiles.length) {
+          return false;
+        }
+        markdownFiles.sort((a, b) => a.path.localeCompare(b.path, undefined, { numeric: true }));
+        buildLibrary(markdownFiles, assets, rootName || "Markdown folder");
+        return true;
+      }
+
+      function joinUrl(base, rel) {
+        const cleaned = String(rel || "").replace(/^\.\//, "").replace(/^\/+/, "");
+        if (!base) {
+          return cleaned;
+        }
+        return String(base).replace(/\/?$/, "/") + cleaned;
+      }
+
+      async function fetchJson(url) {
+        try {
+          const response = await fetch(url, { cache: "no-store" });
+          if (!response.ok) {
+            return null;
+          }
+          return await response.json();
+        } catch (error) {
+          return null;
+        }
+      }
+
+      async function listDirectory(url) {
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) {
+          return { dirs: [], files: [] };
+        }
+        const text = await response.text();
+        if (!text || text.trim().startsWith("{") || text.trim().startsWith("[")) {
+          return { dirs: [], files: [] };
+        }
+        const dirs = [];
+        const files = [];
+        const skip = new Set(["", ".", "..", "./", "../"]);
+        const hrefs = text.matchAll(/href=["']([^"'?#]+)["']/gi);
+        for (const match of hrefs) {
+          let href = match[1];
+          try {
+            href = decodeURIComponent(href);
+          } catch (error) {
+            continue;
+          }
+          href = href.replace(/^\.\//, "");
+          if (skip.has(href) || href.startsWith("../") || href.startsWith("/") || href.includes("://") || href.startsWith(".")) {
+            continue;
+          }
+          if (href.endsWith("/")) {
+            dirs.push(href.replace(/\/+$/, ""));
+          } else {
+            files.push(href.split("/").pop());
+          }
+        }
+        return {
+          dirs: Array.from(new Set(dirs)).filter(Boolean),
+          files: Array.from(new Set(files)).filter(Boolean)
+        };
+      }
+
+      async function collectLiveEntries(base, prefix, depth) {
+        const listing = await listDirectory(base);
+        const entries = [];
+        for (const file of listing.files) {
+          const rel = prefix ? prefix + "/" + file : file;
+          const url = joinUrl(base, file);
+          if (MD_EXT.test(file)) {
+            const response = await fetch(url, { cache: "no-store" });
+            if (response.ok) {
+              entries.push({ path: rel, text: await response.text() });
+            }
+          } else if (IMAGE_EXT.test(file)) {
+            entries.push({ path: rel, url });
+          }
+        }
+        if (depth > 0) {
+          for (const dir of listing.dirs) {
+            if (dir.startsWith(".") || dir === "node_modules") {
+              continue;
+            }
+            const nested = await collectLiveEntries(
+              joinUrl(base, dir + "/"),
+              prefix ? prefix + "/" + dir : dir,
+              depth - 1
+            );
+            entries.push(...nested);
+          }
+        }
+        return entries;
+      }
+
+      async function loadManifest(manifest, fileBase) {
+        const library = manifest.library || "";
+        const entries = [];
+        for (const rel of manifest.files || []) {
+          const path = normalizePath(rel);
+          const url = joinUrl(fileBase, library ? library + "/" + path : path);
+          if (MD_EXT.test(path)) {
+            const response = await fetch(url, { cache: "no-store" });
+            if (!response.ok) {
+              continue;
+            }
+            entries.push({ path, text: await response.text() });
+          } else if (IMAGE_EXT.test(path)) {
+            entries.push({ path, url });
+          }
+        }
+        return loadFromEntries(entries, manifest.root || library || "Markdown folder");
+      }
+
+      async function tryLoadLive() {
+        const preferred = ["md_uploaded", "markdown", "notes", "md"];
+        const localManifest = await fetchJson("manifest.json");
+        if (localManifest && (await loadManifest(localManifest, "./"))) {
+          return true;
+        }
+
+        for (const name of preferred) {
+          const nested = await fetchJson(name + "/manifest.json");
+          if (!nested) {
+            continue;
+          }
+          const base = nested.library ? "./" : name + "/";
+          if (await loadManifest(nested, base)) {
+            return true;
+          }
+        }
+
+        const top = await listDirectory("./");
+        const candidates = preferred.filter((name) => top.dirs.includes(name)).concat(
+          top.dirs.filter((name) => preferred.indexOf(name) === -1)
+        );
+        const scored = [];
+        for (const dir of candidates) {
+          const entries = await collectLiveEntries(joinUrl("./", dir + "/"), "", 3);
+          const mdCount = entries.filter((entry) => entry.text).length;
+          if (mdCount) {
+            scored.push({ dir, entries, mdCount });
+          }
+        }
+        if (scored.length) {
+          scored.sort((a, b) => {
+            const prefA = preferred.indexOf(a.dir);
+            const prefB = preferred.indexOf(b.dir);
+            if (prefA !== -1 || prefB !== -1) {
+              return (prefA === -1 ? 99 : prefA) - (prefB === -1 ? 99 : prefB);
+            }
+            return b.mdCount - a.mdCount;
+          });
+          const best = scored[0];
+          return loadFromEntries(best.entries, best.dir);
+        }
+
+        const here = await collectLiveEntries("./", "", 2);
+        return loadFromEntries(here, "Markdown folder");
+      }
+
+      function tryLoadEmbedded() {
+        const node = document.getElementById("embeddedFolder");
+        if (!node) {
+          return false;
+        }
+        try {
+          const payload = JSON.parse(node.textContent);
+          return loadFromEntries(payload.files, payload.root);
+        } catch (error) {
+          return false;
+        }
+      }
+
+      async function boot() {
+        renderBrandTitle();
+        if (window.location.protocol !== "file:") {
+          try {
+            if (await tryLoadLive()) {
+              return;
+            }
+          } catch (error) {
+            // Fall back to the packed notes.
+          }
+        }
+        tryLoadEmbedded();
+      }
+
+      if (menuToggle) {
+        menuToggle.addEventListener("click", () => {
+          document.body.classList.toggle("nav-open");
+        });
+      }
+
+      backdrop.addEventListener("click", () => {
+        document.body.classList.remove("nav-open");
+      });
+
+      window.addEventListener("hashchange", () => {
+        if (!state.data) {
+          return;
+        }
+        hydrateFromHash();
+        render();
+      });
+
+      boot();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="420" viewBox="0 0 920 420" role="img" aria-label="Investment property share">
+  <rect width="920" height="420" fill="#ffffff"/>
+  
+  <text x="64" y="28" font-family="Lato, Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#1f2736">Investment-property share of LAR rows</text>
+  <text x="884" y="28" text-anchor="end" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#8c97aa">percent of records</text>
+  <line x1="64" y1="368.0" x2="884" y2="368.0" stroke="#dfe4ec" stroke-width="1"/><text x="54" y="372.0" text-anchor="end" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">4%</text><line x1="64" y1="314.7" x2="884" y2="314.7" stroke="#dfe4ec" stroke-width="1"/><text x="54" y="318.7" text-anchor="end" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">5%</text><line x1="64" y1="261.3" x2="884" y2="261.3" stroke="#dfe4ec" stroke-width="1"/><text x="54" y="265.3" text-anchor="end" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">6%</text><line x1="64" y1="208.0" x2="884" y2="208.0" stroke="#dfe4ec" stroke-width="1"/><text x="54" y="212.0" text-anchor="end" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">7%</text><line x1="64" y1="154.7" x2="884" y2="154.7" stroke="#dfe4ec" stroke-width="1"/><text x="54" y="158.7" text-anchor="end" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">8%</text><line x1="64" y1="101.3" x2="884" y2="101.3" stroke="#dfe4ec" stroke-width="1"/><text x="54" y="105.3" text-anchor="end" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">9%</text><line x1="64" y1="48.0" x2="884" y2="48.0" stroke="#dfe4ec" stroke-width="1"/><text x="54" y="52.0" text-anchor="end" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">10%</text>
+  <path d="M 64.0,237.3 L 181.1,266.1 L 298.3,314.7 L 415.4,240.5 L 532.6,187.7 L 649.7,197.3 L 766.9,177.1 L 884.0,132.3 L 884.0,368.0 L 64.0,368.0 Z" fill="#c43dff" fill-opacity="0.12"/>
+  <path d="M 64.0,237.3 L 181.1,266.1 L 298.3,314.7 L 415.4,240.5 L 532.6,187.7 L 649.7,197.3 L 766.9,177.1 L 884.0,132.3" fill="none" stroke="#c43dff" stroke-width="3"/>
+  <circle cx="64.0" cy="237.3" r="5.5" fill="#c43dff"/><text x="64.0" y="225.3" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="11" fill="#1f2736">6.45</text>
+<circle cx="181.1" cy="266.1" r="5.5" fill="#c43dff"/><text x="181.1" y="254.1" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="11" fill="#1f2736">5.91</text>
+<circle cx="298.3" cy="314.7" r="5.5" fill="#c43dff"/><text x="298.3" y="302.7" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="11" fill="#1f2736">5.00</text>
+<circle cx="415.4" cy="240.5" r="5.5" fill="#c43dff"/><text x="415.4" y="228.5" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="11" fill="#1f2736">6.39</text>
+<circle cx="532.6" cy="187.7" r="5.5" fill="#c43dff"/><text x="532.6" y="175.7" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="11" fill="#1f2736">7.38</text>
+<circle cx="649.7" cy="197.3" r="5.5" fill="#c43dff"/><text x="649.7" y="185.3" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="11" fill="#1f2736">7.20</text>
+<circle cx="766.9" cy="177.1" r="5.5" fill="#c43dff"/><text x="766.9" y="165.1" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="11" fill="#1f2736">7.58</text>
+<circle cx="884.0" cy="132.3" r="5.5" fill="#c43dff"/><text x="884.0" y="120.3" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="11" fill="#1f2736">8.42</text>
+  <text x="64.0" y="402" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">2018</text>
+<text x="181.1" y="402" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">2019</text>
+<text x="298.3" y="402" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">2020</text>
+<text x="415.4" y="402" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">2021</text>
+<text x="532.6" y="402" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">2022</text>
+<text x="649.7" y="402" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">2023</text>
+<text x="766.9" y="402" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">2024</text>
+<text x="884.0" y="402" text-anchor="middle" font-family="Lato, Segoe UI, sans-serif" font-size="12" fill="#667389">2025</text>
+
+</svg>
