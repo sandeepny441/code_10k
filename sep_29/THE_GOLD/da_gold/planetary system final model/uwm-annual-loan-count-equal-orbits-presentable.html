@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Annual Loan Count Distribution of LOs — UWM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f6f0e4;
+      --bg-deep: #efe6d4;
+      --art: #f3e8d2;
+      --surface: #fffcf6;
+      --ink: #1a2438;
+      --ink-soft: #5a6474;
+      --line: #e2d5c0;
+      --line-strong: #d4c4a8;
+      --mercury: #7eb8b0;
+      --venus: #9aa3e8;
+      --earth: #8fbc8f;
+      --mars: #e6c27a;
+      --jupiter: #e8a090;
+      --saturn: #c9a0b8;
+      --core: #3d4f66;
+      --radius: 20px;
+      --shadow: 0 18px 48px rgba(26, 36, 56, 0.07), 0 2px 8px rgba(26, 36, 56, 0.04);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(1200px 600px at 12% -10%, rgba(232, 182, 44, 0.12), transparent 55%),
+        radial-gradient(900px 500px at 100% 20%, rgba(60, 94, 226, 0.08), transparent 50%),
+        var(--bg);
+      color: var(--ink);
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: clamp(28px, 4.5vw, 64px);
+      display: grid;
+      grid-template-columns: minmax(300px, 0.95fr) minmax(420px, 1.15fr);
+      gap: clamp(28px, 4.5vw, 64px);
+      align-items: center;
+    }
+
+    .viz {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .art {
+      width: min(100%, 560px);
+      aspect-ratio: 1;
+      background: linear-gradient(165deg, #f8efdc 0%, var(--art) 100%);
+      padding: 5.5%;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .art::before {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 22px;
+      border: 1px dashed rgba(26, 36, 56, 0.06);
+      pointer-events: none;
+    }
+
+    .orbit {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+    }
+
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+    }
+
+    .saturn  { inset: 0;      background: var(--saturn); }
+    .jupiter { inset: 6.25%;  background: var(--jupiter); }
+    .mars    { inset: 12.5%;  background: var(--mars); }
+    .earth   { inset: 18.75%; background: var(--earth); }
+    .venus   { inset: 25%;    background: var(--venus); }
+    .mercury { inset: 31.25%; background: var(--mercury); }
+
+    .core {
+      position: absolute;
+      inset: 37.5%;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #fff;
+      color: var(--core);
+      font-family: Fraunces, Georgia, serif;
+      font-weight: 700;
+      font-size: clamp(16px, 2vw, 26px);
+      letter-spacing: -0.04em;
+      box-shadow:
+        0 8px 28px rgba(0, 60, 136, 0.12),
+        inset 0 0 0 1px rgba(0, 60, 136, 0.08);
+    }
+
+    .caption {
+      max-width: 34rem;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--ink-soft);
+      margin: 0;
+    }
+
+    .caption strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .panel {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: clamp(22px, 3vw, 36px);
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--bg-deep);
+      border: 1px solid var(--line);
+      color: var(--ink-soft);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-family: Fraunces, Georgia, serif;
+      font-size: clamp(26px, 3vw, 38px);
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      line-height: 1.12;
+    }
+
+    .lede {
+      margin: 0 0 22px;
+      color: var(--ink-soft);
+      font-size: 15px;
+      line-height: 1.55;
+      max-width: 42ch;
+    }
+
+    .insight {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: start;
+      margin: 0 0 22px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(126, 184, 176, 0.18), rgba(154, 163, 232, 0.14));
+      border: 1px solid rgba(126, 184, 176, 0.35);
+    }
+
+    .insight-stat {
+      font-family: Fraunces, Georgia, serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      color: #5a8f88;
+      line-height: 1;
+      padding-top: 2px;
+    }
+
+    .insight p {
+      margin: 0;
+      font-size: 13.5px;
+      line-height: 1.45;
+      color: var(--ink);
+    }
+
+    .insight span {
+      color: var(--ink-soft);
+    }
+
+    .wrap {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+
+    col:first-child { width: 34%; }
+    col:nth-child(2) { width: 16%; }
+    col:nth-child(3) { width: 18%; }
+    col:last-child { width: 32%; }
+
+    th, td {
+      padding: 14px 14px;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #f3ead8;
+      color: var(--ink-soft);
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      line-height: 1.25;
+    }
+
+    tbody tr:last-child td { border-bottom: 0; }
+
+    tbody tr:hover td {
+      background: rgba(246, 240, 228, 0.55);
+    }
+
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .band {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .dot {
+      flex: 0 0 auto;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+    }
+
+    .dm  { background: var(--mercury); }
+    .dv  { background: var(--venus); }
+    .de  { background: var(--earth); }
+    .dma { background: var(--mars); }
+    .dj  { background: var(--jupiter); }
+    .ds  { background: var(--saturn); }
+
+    .band-copy {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .name {
+      font-weight: 650;
+      font-size: 14px;
+      letter-spacing: -0.01em;
+    }
+
+    .role {
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cum {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    .bar {
+      width: 100%;
+      max-width: 88px;
+      height: 5px;
+      border-radius: 999px;
+      background: #ebe1cf;
+      overflow: hidden;
+    }
+
+    .bar > i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--mercury), var(--venus));
+    }
+
+    .footnote {
+      margin: 16px 0 0;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--ink-soft);
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+        padding: 28px 20px 40px;
+      }
+
+      .art { margin: 0 auto; }
+    }
+
+    @media (max-width: 520px) {
+      .app { padding: 20px 14px 32px; }
+      .panel { padding: 18px 14px; }
+      th, td { padding: 12px 8px; }
+      th { font-size: 9px; }
+      .role { display: none; }
+      .insight { grid-template-columns: 1fr; gap: 8px; }
+      col:first-child { width: 30%; }
+      col:last-child { width: 34%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="viz" aria-label="Equal-orbit planetary chart">
+      <div class="art">
+        <div class="orbit" role="img" aria-label="Concentric equal-width orbits from Mercury at the center through Saturn at the outer rim, with UWM at the core">
+          <div class="ring saturn"></div>
+          <div class="ring jupiter"></div>
+          <div class="ring mars"></div>
+          <div class="ring earth"></div>
+          <div class="ring venus"></div>
+          <div class="ring mercury"></div>
+          <div class="core">UWM</div>
+        </div>
+      </div>
+      <p class="caption">
+        Equal-width orbits: each band is the same visual thickness so
+        <strong>share of loans</strong>, not physical size, carries the story.
+      </p>
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">Planetary model · LO productivity</p>
+      <h1>Annual loan count distribution of LOs</h1>
+      <p class="lede">
+        How loan officers cluster by annual volume — and how uneven that volume really is.
+      </p>
+
+      <div class="insight" role="note">
+        <div class="insight-stat">70%</div>
+        <p>
+          of loans come from the top <strong>20%</strong> of LOs
+          <span>(Mercury + Venus).</span>
+        </p>
+      </div>
+
+      <div class="wrap">
+        <table>
+          <colgroup>
+            <col><col><col><col>
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col">Band</th>
+              <th scope="col" class="num">% of LOs</th>
+              <th scope="col" class="num">% of loans</th>
+              <th scope="col" class="num">Cumulative</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="band">
+                  <i class="dot dm" aria-hidden="true"></i>
+                  <div class="band-copy">
+                    <span class="name">Mercury</span>
+                    <span class="role">Highest producers</span>
+                  </div>
+                </div>
+              </td>
+              <td class="num">10%</td>
+              <td class="num">50%</td>
+              <td>
+                <div class="cum">
+                  <span class="num">50%</span>
+                  <span class="bar" aria-hidden="true"><i style="width:50%"></i></span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="band">
+                  <i class="dot dv" aria-hidden="true"></i>
+                  <div class="band-copy">
+                    <span class="name">Venus</span>
+                    <span class="role">Strong producers</span>
+                  </div>
+                </div>
+              </td>
+              <td class="num">10%</td>
+              <td class="num">20%</td>
+              <td>
+                <div class="cum">
+                  <span class="num">70%</span>
+                  <span class="bar" aria-hidden="true"><i style="width:70%"></i></span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="band">
+                  <i class="dot de" aria-hidden="true"></i>
+                  <div class="band-copy">
+                    <span class="name">Earth</span>
+                    <span class="role">Mid–high volume</span>
+                  </div>
+                </div>
+              </td>
+              <td class="num">10%</td>
+              <td class="num">10%</td>
+              <td>
+                <div class="cum">
+                  <span class="num">80%</span>
+                  <span class="bar" aria-hidden="true"><i style="width:80%"></i></span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="band">
+                  <i class="dot dma" aria-hidden="true"></i>
+                  <div class="band-copy">
+                    <span class="name">Mars</span>
+                    <span class="role">Mid volume</span>
+                  </div>
+                </div>
+              </td>
+              <td class="num">20%</td>
+              <td class="num">10%</td>
+              <td>
+                <div class="cum">
+                  <span class="num">90%</span>
+                  <span class="bar" aria-hidden="true"><i style="width:90%"></i></span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="band">
+                  <i class="dot dj" aria-hidden="true"></i>
+                  <div class="band-copy">
+                    <span class="name">Jupiter</span>
+                    <span class="role">Lower volume</span>
+                  </div>
+                </div>
+              </td>
+              <td class="num">20%</td>
+              <td class="num">5%</td>
+              <td>
+                <div class="cum">
+                  <span class="num">95%</span>
+                  <span class="bar" aria-hidden="true"><i style="width:95%"></i></span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="band">
+                  <i class="dot ds" aria-hidden="true"></i>
+                  <div class="band-copy">
+                    <span class="name">Saturn</span>
+                    <span class="role">Lowest volume</span>
+                  </div>
+                </div>
+              </td>
+              <td class="num">30%</td>
+              <td class="num">5%</td>
+              <td>
+                <div class="cum">
+                  <span class="num">100%</span>
+                  <span class="bar" aria-hidden="true"><i style="width:100%"></i></span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="footnote">
+        Inner rings = higher annual loan count. Outer rings hold more LOs but a smaller share of total loans.
+      </p>
+    </section>
+  </main>
+</body>
+</html>

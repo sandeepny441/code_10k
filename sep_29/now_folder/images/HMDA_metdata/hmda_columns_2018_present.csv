@@ -1,0 +1,74 @@
+Position,Column,Description
+1,YEAR,Reporting year.
+2,LEI,"Legal Entity Identifier, used in the newer HMDA schema."
+3,TAXID,Institution tax ID where available.
+4,CODE,Regulatory agency / source code in the HMDA panel file.
+5,NAMET,Institution name as reported in the transmittal/panel source.
+6,PLACET,Institution city/place as reported in the transmittal/panel source.
+7,STATET,Institution state code as reported in the transmittal/panel source.
+8,CODE17,Legacy 2017-style agency/source code carried into newer file.
+9,HMPRID,HMDA respondent ID / panel respondent identifier.
+10,SEQINS,Institution sequence identifier.
+11,EXEMPT18,2018 exemption indicator in newer schema.
+12,TYPE,Institution type code.
+13,RSSD,Federal Reserve RSSD identifier for the institution where available.
+14,NAMER,Regulatory institution name.
+15,FORER,Regulatory charter/name prefix or form code.
+16,CHARTR,Charter code.
+17,PLACER,Regulatory city/place.
+18,STATER,Regulatory state code.
+19,COUNTYR,Regulatory county code.
+20,TAXIDR,Regulatory tax ID.
+21,LEIR,Regulatory LEI where available.
+22,RSSDP,Parent RSSD identifier.
+23,NAMEP,Parent institution/company name.
+24,RSSDHH,Highest-holder RSSD identifier.
+25,NAMEHH,Highest-holder name.
+26,ENTITY,Entity identifier used for consolidated lender identity.
+27,NAME,Consolidated institution/lender name.
+28,FORE,Consolidated charter/name prefix or form code.
+29,PLACE,Consolidated city/place.
+30,STATE,Consolidated state code.
+31,COUNTY,Consolidated county code.
+32,INSURE,Deposit insurer / insurance code.
+33,MINBNK,Minority bank indicator.
+34,CERT,FDIC certificate number where applicable.
+35,OCC,OCC identifier or indicator where applicable.
+36,THRIFT,Thrift identifier or indicator where applicable.
+37,NCUA,NCUA identifier or indicator where applicable.
+38,ASSETS,Institution assets.
+39,ASSETL,Lender or related asset measure used by the panel file.
+40,CRADATE,CRA examination/effective date field.
+41,CRARATE,CRA rating field.
+42,CRAMETH,CRA evaluation method field.
+43,FHLB,Federal Home Loan Bank district/code.
+44,FHLBID,Federal Home Loan Bank identifier.
+45,ORG,Organization identifier for parent/holding-company linkage.
+46,NAMEOR,Organization name.
+47,FOREOR,Organization charter/name prefix or form code.
+48,CHAROR,Organization charter code.
+49,ASSORG,Organization assets.
+50,REAL14,Real-estate loan or asset-related field from panel source.
+51,LAR,Loan/Application Register count.
+52,LARSNAP,Loan/Application Register snapshot count/indicator.
+53,PURC,Purchased-loan count.
+54,PURCD,Purchased-loan denial/derived count field.
+55,APPL,Application count.
+56,APPLD,Application denial count.
+57,APPLM,Applications made/funded-related count field.
+58,APPLDM,Applications made/funded plus denial-related count field.
+59,ORIG,Originations / loans funded count.
+60,ORIGD,Origination denial/derived count field.
+61,ORIGM,Originations made/funded-related count field.
+62,ORIGDM,Originations made/funded plus denial-related count field.
+63,APPCLO,Closed-end application count in newer schema.
+64,APPCLOD,Closed-end application denial count in newer schema.
+65,APPCLOM,Closed-end application made/funded-related count in newer schema.
+66,APPCLODM,Closed-end application made/funded plus denial-related count in newer schema.
+67,ORICLO,Closed-end origination count in newer schema.
+68,ORICLOD,Closed-end origination denial/derived count in newer schema.
+69,ORICLOM,Closed-end originations made/funded-related count in newer schema.
+70,ORICLODM,Closed-end originations made/funded plus denial-related count in newer schema.
+71,ENTFUT,Future/successor entity identifier field.
+72,ORGFUT,Future/successor organization identifier field.
+73,GINNIE,Ginnie Mae-related count/indicator in newer schema.

@@ -1,0 +1,33 @@
+{
+  "title": "GSE Loan Sales",
+  "chapters": [
+    {
+      "id": "01-gse-loan-sales",
+      "label": "GSE loan sales",
+      "topics": [
+        {
+          "id": "01-loans-sold-by-state",
+          "file": "01-gse-loan-sales/01-loans-sold-by-state.md"
+        },
+        {
+          "id": "02-sold-to-fannie-mae",
+          "file": "01-gse-loan-sales/02-sold-to-fannie-mae.md"
+        }
+      ]
+    },
+    {
+      "id": "02-lenders",
+      "label": "Lenders",
+      "topics": [
+        {
+          "id": "01-active-lenders-by-state",
+          "file": "02-lenders/01-active-lenders-by-state.md"
+        },
+        {
+          "id": "02-lender-productivity",
+          "file": "02-lenders/02-lender-productivity.md"
+        }
+      ]
+    }
+  ]
+}

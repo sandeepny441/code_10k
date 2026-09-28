@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GSE Loan Sales — Rock Bot (Markdown)</title>
+<style>
+  /* Pleasant executive — warm paper, soft ink, calm indigo accent
+     Clear hierarchy, distinctive where needed; not eye-popping */
+  :root {
+    --paper: #FAFAF8;
+    --ink: #1C1C1A;
+    --grey: #6F6E6A;
+    --light: #E6E4DF;
+    --accent: #5568A0;
+    --accent-soft: rgba(85, 104, 160, 0.12);
+    --bar-muted: #5C5B57;
+    --bar-bg: rgba(250, 250, 248, 0.94);
+    --f: system-ui, -apple-system, "Segoe UI", Roboto, "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161615;
+      --ink: #F0EFEA;
+      --grey: #9A9890;
+      --light: #2C2B28;
+      --accent: #8B9AD4;
+      --accent-soft: rgba(139, 154, 212, 0.16);
+      --bar-muted: #8A8880;
+      --bar-bg: rgba(22, 22, 21, 0.94);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161615;
+    --ink: #F0EFEA;
+    --grey: #9A9890;
+    --light: #2C2B28;
+    --accent: #8B9AD4;
+    --accent-soft: rgba(139, 154, 212, 0.16);
+    --bar-muted: #8A8880;
+    --bar-bg: rgba(22, 22, 21, 0.94);
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--paper); }
+  body {
+    margin: 0; color: var(--ink); font-family: var(--f);
+    font-size: 16px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+    font-feature-settings: "tnum" 1, "cv11" 1;
+  }
+  a { color: inherit; text-decoration: none; }
+  button, input { font: inherit; }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  /* ---------- Shell ---------- */
+  .shell {
+    width: min(1760px, 100%); min-height: 100vh; margin: 0 auto;
+    display: grid; grid-template-columns: 188px minmax(0, 1fr);
+  }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    position: sticky; top: 0; align-self: start; height: 100vh; overflow: auto;
+    padding: 14px 12px 12px 14px;
+    border-right: 1px solid var(--light);
+    display: flex; flex-direction: column;
+  }
+  .brand { padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--light); }
+  .brand-title { display: flex; flex-wrap: wrap; gap: 0 0.2em; line-height: 1.05; }
+  .brand-word { font-size: 0.92rem; font-weight: 750; letter-spacing: -0.03em; }
+  .brand-word.accent { color: var(--accent); font-weight: 700; }
+  .brand-eyebrow { margin: 3px 0 0; font-size: 0.55rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--grey); line-height: 1.2; }
+
+  .nav-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 2px; }
+  .sidebar h2 { margin: 0; font-size: 0.62rem; font-weight: 600; color: var(--grey); letter-spacing: 0.06em; text-transform: uppercase; }
+  .toggle-all {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; padding: 0; border: 0; background: transparent;
+    color: var(--grey); cursor: pointer; border-radius: 4px;
+  }
+  .toggle-all:hover { color: var(--accent); background: var(--accent-soft); }
+  .toggle-all svg { width: 9px; height: 9px; transition: transform 0.15s ease; }
+  .toggle-all.collapsed svg { transform: rotate(-90deg); }
+
+  .chapters { list-style: none; margin: 0; padding: 0; }
+  .chapter { border-top: 1px solid var(--light); }
+  .chapter:first-child { border-top: 0; }
+  .chapter-btn {
+    width: 100%; display: flex; align-items: center; gap: 5px;
+    padding: 6px 0; margin: 0; border: 0; background: transparent;
+    color: var(--ink); text-align: left; cursor: pointer;
+    font-size: 0.76rem; font-weight: 650; line-height: 1.15; letter-spacing: -0.01em;
+  }
+  .chapter-btn:hover .label { color: var(--accent); }
+  .chapter-btn .chev { width: 7px; height: 7px; flex: none; }
+  .chapter:not(.open) .chapter-btn .chev { transform: rotate(-90deg); }
+  .chapter-btn .number { min-width: 16px; font-variant-numeric: tabular-nums; color: var(--grey); font-weight: 600; }
+  .chapter-btn .label { flex: 1; }
+  .chapter.current .chapter-btn { color: var(--accent); }
+  .chapter.current .chapter-btn .number { color: var(--accent); }
+  .chapter.current .chapter-btn .number,
+  .chapter.current .chapter-btn .chev { color: var(--accent); }
+
+  .topics { list-style: none; margin: 0 0 2px 10px; padding: 0; display: none; }
+  .chapter.open .topics { display: block; }
+  .topic-link {
+    display: flex; gap: 4px; align-items: baseline; padding: 2px 6px 2px 8px;
+    border-left: 1px solid var(--light); border-radius: 0 4px 4px 0;
+    color: var(--grey); font-size: 0.7rem; line-height: 1.25;
+  }
+  .topic-link:hover { color: var(--ink); background: rgba(28, 28, 26, 0.04); }
+  .topic-link.active { color: var(--ink); font-weight: 600; border-left: 2px solid var(--accent); padding-left: 7px; background: rgba(85, 104, 160, 0.08); }
+  .topic-link .number { min-width: 18px; opacity: 0.7; }
+  @media (prefers-reduced-motion: reduce) { .chapter-btn .chev, .toggle-all svg { transition: none; } }
+
+  .upload-tools { margin-top: auto; padding-top: 8px; }
+  .upload-status { margin: 0; font-size: 0.72rem; color: var(--grey); line-height: 1.35; }
+  .upload-status.error { color: #A33; }
+
+  /* ---------- Main ---------- */
+  .main {
+    height: 100vh; height: 100dvh; min-height: 520px;
+    display: flex; flex-direction: column;
+    padding: clamp(14px, 3.2vh, 32px) clamp(20px, 3.2vw, 52px) clamp(12px, 2.2vh, 24px);
+    min-width: 0; container-type: inline-size;
+  }
+  .question {
+    flex: none;
+    margin: 0 0 clamp(14px, 3vh, 28px);
+    padding-top: clamp(10px, 1.8vh, 16px);
+    border-top: none;
+    box-shadow:
+      inset 0 2px 0 0 var(--accent),
+      inset 0 3px 0 0 var(--ink);
+  }
+  .question h1 {
+    margin: 0; max-width: 36ch;
+    font-size: clamp(1.35rem, min(2.3vw, 4.4vh), 2.05rem);
+    font-weight: 650;
+    line-height: 1.12; letter-spacing: -0.028em;
+    color: var(--ink);
+  }
+
+  .grid {
+    display: grid; grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr); gap: 18px;
+    flex: 1 1 auto; min-height: 0; max-height: 600px;
+    border-top: 1px solid var(--light);
+  }
+  .chart { padding: clamp(12px, 1.8vh, 16px) 22px clamp(10px, 1.4vh, 14px) 16px; display: flex; flex-direction: column; min-height: 0; background: #F3F0E8; border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(28,28,26,0.05); }
+  .chart-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 12px; flex-wrap: wrap; margin-bottom: clamp(10px, 1.8vh, 16px); flex: none;
+  }
+  .chart-head h2 { margin: 0; font-size: 0.82rem; font-weight: 700; letter-spacing: -0.005em; }
+  .commentary h2 { margin: 0 0 10px; font-size: 0.95rem; font-weight: 800; letter-spacing: -0.02em; text-align: center; width: 100%; }
+  .legend {
+    display: flex; gap: 16px; font-size: 0.72rem; font-weight: 500; color: var(--grey);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i {
+    width: 10px; height: 10px; display: inline-block;
+    border-radius: 2px;
+  }
+
+  .bars {
+    list-style: none; margin: 0; padding: 0;
+    flex: 1 1 0; min-height: 0; max-height: 510px;
+    display: grid; grid-auto-rows: minmax(18px, 1fr);
+  }
+  .bar-row {
+    display: grid; grid-template-columns: 152px minmax(0, 1fr) 68px;
+    align-items: center; gap: 14px; padding: 0;
+    border-bottom: 1px solid var(--light);
+  }
+  .bar-row:last-child { border-bottom: 0; }
+  .bar-row .state {
+    font-size: 0.8rem; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+  }
+  .bar-row .state b {
+    display: inline-block; min-width: 28px; font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+  .bar-row .state .full { color: var(--grey); font-weight: 400; margin-left: 2px; }
+  .bar-row.top .state .full { color: var(--ink); }
+  .bar-row.top .state b { color: var(--accent); }
+  .track { height: min(14px, 72%); display: flex; align-items: stretch; }
+  .bar-row .track {
+    height: 100%; max-height: 14px; min-height: 10px;
+    background: rgba(28, 28, 26, 0.04);
+    border-radius: 3px; overflow: hidden;
+  }
+  .fill {
+    height: 100%; width: 0;
+    background: var(--bar-muted);
+    border-radius: 3px;
+    transition: width 700ms cubic-bezier(.2,.7,.2,1);
+  }
+  .bar-row.top .fill { background: var(--accent); }
+  .bar-row .val { text-align: right; font-size: 0.8rem; font-weight: 600; color: var(--ink); }
+  .bar-row.top .val { color: var(--accent); }
+  @media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+  .chart-note { flex: none; margin: clamp(8px, 1.4vh, 12px) 0 0; font-size: 0.72rem; color: var(--grey); }
+
+  .commentary { padding: clamp(12px, 1.8vh, 16px) 16px clamp(10px, 1.4vh, 14px) 18px; border-left: 0; background: #EEF2F8; border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(28,28,26,0.05); }
+  .points { list-style: none; margin: 0; padding: 0; }
+  .points li {
+    display: grid; grid-template-columns: 6px 1fr; gap: 14px;
+    padding: clamp(10px, 1.8vh, 15px) 0;
+    border-bottom: 1px solid var(--light);
+  }
+  .points li:last-child { border-bottom: 0; }
+  .points li::before {
+    content: ""; width: 6px; height: 6px; margin-top: 0.55em;
+    border-radius: 50%; background: var(--accent);
+  }
+  .points p {
+    margin: 0; color: var(--ink);
+    font-size: 0.97rem;
+    line-height: 1.55; letter-spacing: -0.005em;
+    max-width: 42ch; font-weight: 450;
+  }
+  .points p strong { color: var(--accent); font-weight: 700; }
+
+  .source {
+    flex: none; margin: clamp(10px, 1.6vh, 16px) 0 0;
+    padding-top: 10px; border-top: 1px solid var(--light);
+    font-size: 0.72rem; color: var(--grey);
+  }
+
+  /* ---------- Mobile ---------- */
+  .mobile-bar, .backdrop { display: none; }
+  @media (max-width: 820px) {
+    .mobile-bar {
+      position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px;
+      height: 50px; padding: 0 12px; border-bottom: 1px solid var(--light);
+      background: var(--bar-bg); backdrop-filter: blur(10px);
+    }
+    .mobile-toggle { width: 34px; height: 34px; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
+    .mobile-toggle svg { width: 18px; height: 18px; }
+    .mobile-bar strong { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.02em; }
+    .shell { grid-template-columns: 1fr; }
+    .sidebar {
+      position: fixed; top: 50px; left: 0; bottom: 0; height: auto; z-index: 25;
+      width: min(84vw, 300px); background: var(--paper);
+      border-right: 1px solid var(--light);
+      transform: translateX(-102%); transition: transform 0.2s ease;
+    }
+    body.nav-open .sidebar { transform: translateX(0); }
+    .main { height: auto; min-height: 0; display: block; padding: 20px 16px 40px; }
+    .bars { display: block; max-height: none; }
+    .bar-row { padding: 4px 0; }
+    .bar-row .track { height: 12px; }
+    .backdrop {
+      position: fixed; inset: 50px 0 0; z-index: 15; display: block;
+      opacity: 0; pointer-events: none; background: rgba(28, 28, 26, 0.28); transition: opacity 0.2s ease;
+    }
+    body.nav-open .backdrop { opacity: 1; pointer-events: auto; }
+  }
+
+  @media (max-width: 1100px) and (min-width: 821px) {
+    .shell { grid-template-columns: 208px minmax(0, 1fr); }
+  }
+  @container (max-width: 900px) {
+    .chart { padding-right: 18px; }
+    .commentary { padding-left: 18px; }
+    .bar-row { grid-template-columns: 120px minmax(0, 1fr) 56px; gap: 8px; }
+    .bar-row .state, .bar-row .val { font-size: 0.76rem; }
+    .points li { gap: 10px; }
+    .points p { font-size: 0.92rem; }
+  }
+  @container (max-width: 700px) {
+    .bar-row { grid-template-columns: 28px minmax(0, 1fr) 52px; }
+    .bar-row .state .full { display: none; }
+  }
+  @container (max-width: 380px) {
+    .grid { grid-template-columns: 1fr; }
+    .chart { padding-right: 0; }
+    .commentary { border-left: 0; border-top: 1px solid var(--light); padding-left: 0; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .bar-row .track { background: rgba(240, 239, 234, 0.06); }
+    :root:not([data-theme="light"]) .topic-link:hover { background: rgba(240, 239, 234, 0.05); }
+  }
+  :root[data-theme="dark"] .bar-row .track { background: rgba(240, 239, 234, 0.06); }
+  :root[data-theme="dark"] .topic-link:hover { background: rgba(240, 239, 234, 0.05); }
+
+  :root[data-theme="dark"] .chart { background: #1E1E1C; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+  :root[data-theme="dark"] .commentary { background: #1A1D24; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+</style>
+</head>
+<body>
+  <header class="mobile-bar">
+    <button class="mobile-toggle" id="menuToggle" aria-label="Show chapters">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"/></svg>
+    </button>
+    <strong id="mobileTitle">GSE Loan Sales</strong>
+  </header>
+  <div class="backdrop" id="backdrop"></div>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div id="brandTitle"></div>
+        <p class="brand-eyebrow">Markdown experiment · build.py → standalone</p>
+      </div>
+      <div class="nav-head">
+        <h2>Chapters</h2>
+        <button class="toggle-all" id="toggleAll" type="button"></button>
+      </div>
+      <nav aria-label="Chapters and topics"><ul class="chapters" id="chapterNav"></ul></nav>
+      <div class="upload-tools">
+        <p class="upload-status" id="uploadStatus">Loading content…</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="question">
+        <h1 id="question"></h1>
+      </header>
+
+      <section class="grid">
+        <div class="chart">
+          <div class="chart-head">
+            <h2 id="chartTitle"></h2>
+            <div class="legend" aria-hidden="true">
+              <span><i style="background:var(--accent)"></i>Top 3</span>
+              <span><i style="background:var(--bar-muted)"></i>Rest of top 15</span>
+            </div>
+          </div>
+          <ol class="bars" id="bars"></ol>
+          <p class="chart-note" id="chartNote"></p>
+        </div>
+        <aside class="commentary">
+          <h2>Takeaways</h2>
+          <ul class="points" id="points"></ul>
+        </aside>
+      </section>
+
+      <p class="source">Source: content/*.md → content-bundle.js (local) or report-standalone.html (share). Run python3 build.py. Figures are illustrative sample data.</p>
+    </main>
+  </div>
+
+<script>
+window.CONTENT_BUNDLE={"title":"GSE Loan Sales","rows":[{"chapter":"GSE loan sales","topic":"Loans sold by state","question":"How many GSE-sold loans did lenders close or fund?","chart_title":"Loans sold to the GSEs, last 12 months","unit":"loans","prefix":"","suffix":"","decimals":"","data":"CA=48210; TX=41870; FL=36540; NY=22960; IL=19430; PA=17880; OH=16120; GA=15740; NC=15210; MI=13650; AZ=13020; WA=12480; NJ=11930; VA=11370; CO=10840","commentary":"California, Texas and Florida account for **41%** of loans sold across the top 15 states.\nCalifornia leads with **48,210** loans, about **6,300** more than Texas.\nThe top state sells **4.4×** as many loans as Colorado at #15.\nSun Belt states grew fastest, up **12%** year over year."},{"chapter":"GSE loan sales","topic":"Sold to Fannie Mae","question":"How many loans did lenders sell to Fannie Mae?","chart_title":"Loans sold to Fannie Mae","unit":"loans","prefix":"","suffix":"","decimals":"","data":"CA=26480; TX=22150; FL=19870; NY=13110; IL=10020; PA=9340; GA=8650; OH=8210; NC=8120; AZ=7240; MI=6980; WA=6910; NJ=6420; VA=6030; CO=5870","commentary":"Fannie Mae took **54%** of GSE-sold loans in the top 15 states.\nNew York leans on Fannie Mae the most, at **57%**.\nOhio is nearly an even split, with **51%** going to Fannie Mae.\nThe top 3 states match total sales, so the choice of GSE isn't driven by geography."},{"chapter":"Lenders","topic":"Active lenders by state","question":"How many lenders sold loans to Fannie Mae or Freddie Mac?","chart_title":"Lenders with at least one GSE sale","unit":"lenders","prefix":"","suffix":"","decimals":"","data":"CA=1184; TX=1092; FL=1036; NY=842; IL=798; PA=771; OH=745; GA=733; NC=719; AZ=702; MI=688; VA=671; WA=664; NJ=652; CO=640","commentary":"The top 3 states have **28%** of lenders but **41%** of loans, so each lender sells more.\nCalifornia lenders sold about **41** loans each, versus **17** in Colorado.\nLender counts are flat: the #1 state has only **1.9×** as many as #15.\nLenders active in several states are counted in each one, so totals exceed unique lenders."},{"chapter":"Lenders","topic":"Lender productivity","question":"How many GSE-sold loans does the typical lender close per year?","chart_title":"Average GSE loans per lender, last 12 months","unit":"loans / lender","prefix":"","suffix":"","decimals":"","data":"CA=40.7; TX=38.3; FL=35.3; WA=18.8; GA=21.5; NC=21.2; AZ=18.5; NY=27.3; NJ=18.3; VA=16.9; IL=24.3; PA=23.2; OH=21.6; MI=19.8; CO=16.9","commentary":"California lenders average **40.7** GSE-sold loans each — the highest of the top 15.\nTexas and Florida follow closely at **38.3** and **35.3**, keeping the Sun Belt on top.\nColorado and Virginia sit near **17** loans per lender, less than half of California's pace.\nProductivity gaps explain why loan volume concentrates even when lender counts are flat."}]};
+</script>
+<script>
+/* =========================================================
+   Markdown auto-load experiment
+   Standalone: window.CONTENT_BUNDLE is inlined in this file.
+   No content/, content-bundle.js, or localhost required.
+   Share: python3 build.py also writes report-standalone.html
+   (CONTENT_BUNDLE inlined — send that single file only).
+   ========================================================= */
+const STATE_NAMES = {AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",DC:"District of Columbia",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming"};
+const HIGHLIGHT = 3;
+const state = { data: null, section: "", item: "", title: "GSE Loan Sales", open: new Set() };
+const $ = id => document.getElementById(id);
+
+const normalizeHeader = v => String(v || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+const slugify = v => String(v || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "item";
+const esc = t => String(t ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+const richText = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+
+function parseData(text) {
+  return String(text || "").split(/[;\n]+/).map(p => p.trim()).filter(Boolean).map(p => {
+    const m = p.match(/^(.+?)\s*[=:]\s*(-?[\d,.]+)$/);
+    if (!m) return null;
+    const label = m[1].trim();
+    const code = label.toUpperCase();
+    const isCode = STATE_NAMES[code] !== undefined;
+    return { code: isCode ? code : "", name: isCode ? STATE_NAMES[code] : label, value: parseFloat(m[2].replace(/,/g, "")) };
+  }).filter(Boolean).sort((a, b) => b.value - a.value);
+}
+
+function parseCommentary(text) {
+  return String(text || "").split(/\n+/).map(l => l.trim()).filter(Boolean).map(l => {
+    const i = l.indexOf("|");
+    return i > -1 ? { stat: l.slice(0, i).trim(), text: l.slice(i + 1).trim() } : { stat: "", text: l };
+  });
+}
+
+/** Minimal front-matter + body parser (no deps). */
+function parseMarkdownTopic(raw) {
+  const text = String(raw || "").replace(/^\uFEFF/, "");
+  let fm = {}, body = text;
+  const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+  if (m) {
+    body = m[2];
+    m[1].split(/\r?\n/).forEach(line => {
+      const i = line.indexOf(":");
+      if (i < 1) return;
+      const key = line.slice(0, i).trim();
+      let val = line.slice(i + 1).trim();
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.slice(1, -1);
+      }
+      fm[key] = val;
+    });
+  }
+  // Collect markdown list bullets as commentary; ignore images / blank lines
+  const bullets = [];
+  body.split(/\r?\n/).forEach(line => {
+    const bm = line.match(/^\s*[-*+]\s+(.+)$/);
+    if (bm) bullets.push(bm[1].trim());
+  });
+  return {
+    chapter: fm.chapter || "",
+    topic: fm.topic || "",
+    question: fm.question || fm.topic || "",
+    chart_title: fm.chart_title || fm.topic || "",
+    unit: fm.unit || "",
+    prefix: fm.prefix || "",
+    suffix: fm.suffix || "",
+    decimals: fm.decimals || "",
+    data: fm.data || "",
+    commentary: bullets.join("\n")
+  };
+}
+
+function buildData(rows) {
+  const sections = [], map = new Map();
+  rows.forEach(raw => {
+    const r = {};
+    Object.entries(raw).forEach(([k, v]) => { r[normalizeHeader(k)] = v == null ? "" : String(v).trim(); });
+    const chapter = r.chapter || r.section || r.group;
+    const topic = r.topic || r.subtopic || r.item || r.title;
+    if (!chapter || !topic) return;
+    const key = slugify(chapter);
+    if (!map.has(key)) {
+      const s = { key, number: String(sections.length + 1) + "-", label: chapter, items: [] };
+      map.set(key, s); sections.push(s);
+    }
+    const s = map.get(key);
+    s.items.push({
+      id: slugify(topic),
+      number: (s.items.length + 1) + "-",
+      title: topic,
+      question: r.question || topic,
+      chartTitle: r.chart_title || topic,
+      unit: r.unit || "",
+      prefix: r.prefix || "",
+      suffix: r.suffix || "",
+      decimals: r.decimals !== "" && r.decimals != null ? Number(r.decimals) : 0,
+      bars: parseData(r.data),
+      points: parseCommentary(r.commentary)
+    });
+  });
+  if (!sections.length) throw new Error("No usable rows. Include at least chapter and topic columns.");
+  return { sections };
+}
+
+function fmt(item, n) {
+  return item.prefix + n.toLocaleString("en-US", { minimumFractionDigits: item.decimals, maximumFractionDigits: item.decimals }) + item.suffix;
+}
+
+const currentSection = () => state.data.sections.find(s => s.key === state.section) || state.data.sections[0];
+const currentItem = () => currentSection().items.find(i => i.id === state.item) || currentSection().items[0];
+
+function renderBrand() {
+  const words = String(state.title).replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim().split(/\s+/).filter(Boolean);
+  $("brandTitle").innerHTML = '<div class="brand-title">' + words.map((w, i) =>
+    '<span class="brand-word' + (words.length > 1 && i === words.length - 1 ? " accent" : "") + '">' + esc(w) + '</span>').join("") + '</div>';
+  $("mobileTitle").textContent = words.join(" ");
+}
+
+const CHEV = '<svg class="chev" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 2.5h8L5 8z" fill="currentColor"/></svg>';
+
+function renderNav() {
+  $("chapterNav").innerHTML = state.data.sections.map(sec => {
+    const open = state.open.has(sec.key);
+    const cls = "chapter" + (open ? " open" : "") + (sec.key === state.section ? " current" : "");
+    return '<li class="' + cls + '">' +
+      '<button class="chapter-btn" type="button" data-toggle="' + sec.key + '" aria-expanded="' + open + '">' +
+        CHEV + '<span class="number">' + sec.number + '</span><span class="label">' + esc(sec.label) + '</span>' +
+      '</button>' +
+      '<ul class="topics">' + sec.items.map(i =>
+        '<li><a class="topic-link' + (sec.key === state.section && i.id === state.item ? " active" : "") +
+        '" href="#' + sec.key + '/' + i.id + '" data-section="' + sec.key + '" data-item="' + i.id + '">' +
+        '<span class="number">' + i.number + '</span><span>' + esc(i.title) + '</span></a></li>').join("") +
+      '</ul></li>';
+  }).join("");
+
+  const anyOpen = state.open.size > 0;
+  const t = $("toggleAll");
+  t.innerHTML = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 2.5h8L5 8z" fill="currentColor"/></svg>';
+  t.classList.toggle("collapsed", !anyOpen);
+  t.setAttribute("aria-label", anyOpen ? "Collapse all chapters" : "Expand all chapters");
+  t.title = anyOpen ? "Collapse all" : "Expand all";
+}
+
+$("chapterNav").addEventListener("click", e => {
+  const btn = e.target.closest("[data-toggle]");
+  if (btn) {
+    const key = btn.dataset.toggle;
+    state.open.has(key) ? state.open.delete(key) : state.open.add(key);
+    renderNav();
+    return;
+  }
+  const link = e.target.closest("[data-item]");
+  if (link) {
+    e.preventDefault();
+    state.section = link.dataset.section;
+    state.item = link.dataset.item;
+    render();
+  }
+});
+
+$("toggleAll").addEventListener("click", () => {
+  if (state.open.size) state.open.clear();
+  else state.data.sections.forEach(sec => state.open.add(sec.key));
+  renderNav();
+});
+
+function renderContent() {
+  const sec = currentSection(), item = currentItem();
+  $("question").textContent = item.question;
+
+  $("chartTitle").textContent = item.chartTitle;
+  $("chartNote").textContent = item.unit ? "Values shown in " + item.unit + ". Sample data." : "Sample data.";
+
+  const max = item.bars.length ? item.bars[0].value : 1;
+  $("bars").innerHTML = item.bars.map((b, i) =>
+    '<li class="bar-row' + (i < HIGHLIGHT ? " top" : "") + '">' +
+      '<span class="state" title="' + esc(b.name) + '">' + (b.code ? "<b>" + b.code + "</b><span class=\"full\">" + esc(b.name) + "</span>" : esc(b.name)) + '</span>' +
+      '<div class="track" role="img" aria-label="' + esc(b.name + ": " + fmt(item, b.value)) + '"><div class="fill" data-w="' + (b.value / max * 100).toFixed(1) + '"></div></div>' +
+      '<span class="val">' + esc(fmt(item, b.value)) + '</span></li>').join("");
+  requestAnimationFrame(() => requestAnimationFrame(() =>
+    document.querySelectorAll(".fill").forEach(el => el.style.width = el.dataset.w + "%")));
+
+  $("points").innerHTML = item.points.map(p =>
+    '<li><p>' + richText(p.stat ? p.stat + " " + p.text : p.text) + '</p></li>').join("");
+}
+
+function render() {
+  renderNav();
+  renderContent();
+  history.replaceState(null, "", "#" + currentSection().key + "/" + state.item);
+  document.body.classList.remove("nav-open");
+}
+
+function hydrateFromHash() {
+  const [sKey, iId] = location.hash.replace(/^#/, "").split("/");
+  const sec = state.data.sections.find(s => s.key === sKey);
+  if (!sec) return;
+  state.section = sec.key;
+  state.item = sec.items.some(i => i.id === iId) ? iId : sec.items[0].id;
+  state.open.add(sec.key);
+}
+
+function setData(rows, title) {
+  state.data = buildData(rows);
+  state.title = title;
+  state.section = state.data.sections[0].key;
+  state.item = state.data.sections[0].items[0].id;
+  state.open = new Set([state.section]);
+  renderBrand();
+}
+
+$("menuToggle").addEventListener("click", () => document.body.classList.toggle("nav-open"));
+$("backdrop").addEventListener("click", () => document.body.classList.remove("nav-open"));
+window.addEventListener("hashchange", () => { hydrateFromHash(); render(); });
+
+function applyBundle(bundle) {
+  const rows = bundle.rows || [];
+  if (!rows.length) throw new Error("CONTENT_BUNDLE.rows is empty.");
+  setData(rows, bundle.title || "GSE Loan Sales");
+  hydrateFromHash();
+  render();
+}
+
+async function loadFromMarkdown() {
+  const status = $("uploadStatus");
+  try {
+    if (window.CONTENT_BUNDLE && Array.isArray(window.CONTENT_BUNDLE.rows)) {
+      applyBundle(window.CONTENT_BUNDLE);
+      status.classList.remove("error");
+      status.textContent = "Content loaded from inlined CONTENT_BUNDLE";
+      return;
+    }
+    status.classList.add("error");
+    status.textContent = "CONTENT_BUNDLE missing. Rebuild with python3 build.py.";
+  } catch (err) {
+    status.classList.add("error");
+    status.textContent = "Load failed: " + (err && err.message ? err.message : err) + ". Rebuild with python3 build.py.";
+    console.error(err);
+  }
+}
+
+loadFromMarkdown();
+</script>
+</body>
+</html>

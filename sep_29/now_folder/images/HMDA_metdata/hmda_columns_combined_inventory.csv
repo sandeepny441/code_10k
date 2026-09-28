@@ -1,0 +1,76 @@
+Column,1990-2017,2018-present,Availability,Description
+YEAR,Yes,Yes,Both,Reporting year.
+HMPRID,Yes,Yes,Both,HMDA respondent ID / panel respondent identifier.
+HMPDYN,Yes,,1990-2017 only,Dynamic HMDA respondent identifier used in the older file.
+TAXID,Yes,Yes,Both,Institution tax ID where available.
+CODE,Yes,Yes,Both,Regulatory agency / source code in the HMDA panel file.
+NAMET,Yes,Yes,Both,Institution name as reported in the transmittal/panel source.
+PLACET,Yes,Yes,Both,Institution city/place as reported in the transmittal/panel source.
+STATET,Yes,Yes,Both,Institution state code as reported in the transmittal/panel source.
+SEQINS,Yes,Yes,Both,Institution sequence identifier.
+TYPE,Yes,Yes,Both,Institution type code.
+RSSD,Yes,Yes,Both,Federal Reserve RSSD identifier for the institution where available.
+NAMER,Yes,Yes,Both,Regulatory institution name.
+FORER,Yes,Yes,Both,Regulatory charter/name prefix or form code.
+CHARTR,Yes,Yes,Both,Charter code.
+PLACER,Yes,Yes,Both,Regulatory city/place.
+STATER,Yes,Yes,Both,Regulatory state code.
+COUNTYR,Yes,Yes,Both,Regulatory county code.
+TAXIDR,Yes,Yes,Both,Regulatory tax ID.
+RSSDP,Yes,Yes,Both,Parent RSSD identifier.
+NAMEP,Yes,Yes,Both,Parent institution/company name.
+RSSDHH,Yes,Yes,Both,Highest-holder RSSD identifier.
+NAMEHH,Yes,Yes,Both,Highest-holder name.
+ENTITY,Yes,Yes,Both,Entity identifier used for consolidated lender identity.
+NAME,Yes,Yes,Both,Consolidated institution/lender name.
+FORE,Yes,Yes,Both,Consolidated charter/name prefix or form code.
+PLACE,Yes,Yes,Both,Consolidated city/place.
+STATE,Yes,Yes,Both,Consolidated state code.
+COUNTY,Yes,Yes,Both,Consolidated county code.
+INSURE,Yes,Yes,Both,Deposit insurer / insurance code.
+MINBNK,Yes,Yes,Both,Minority bank indicator.
+CERT,Yes,Yes,Both,FDIC certificate number where applicable.
+OCC,Yes,Yes,Both,OCC identifier or indicator where applicable.
+THRIFT,Yes,Yes,Both,Thrift identifier or indicator where applicable.
+NCUA,Yes,Yes,Both,NCUA identifier or indicator where applicable.
+ASSETS,Yes,Yes,Both,Institution assets.
+ASSETL,Yes,Yes,Both,Lender or related asset measure used by the panel file.
+CRADATE,Yes,Yes,Both,CRA examination/effective date field.
+CRARATE,Yes,Yes,Both,CRA rating field.
+CRAMETH,Yes,Yes,Both,CRA evaluation method field.
+FHLB,Yes,Yes,Both,Federal Home Loan Bank district/code.
+FHLBID,Yes,Yes,Both,Federal Home Loan Bank identifier.
+HUD,Yes,,1990-2017 only,HUD identifier/indicator in older schema.
+ORG,Yes,Yes,Both,Organization identifier for parent/holding-company linkage.
+NAMEOR,Yes,Yes,Both,Organization name.
+FOREOR,Yes,Yes,Both,Organization charter/name prefix or form code.
+CHAROR,Yes,Yes,Both,Organization charter code.
+ASSORG,Yes,Yes,Both,Organization assets.
+REAL14,Yes,Yes,Both,Real-estate loan or asset-related field from panel source.
+LARSNAP,Yes,Yes,Both,Loan/Application Register snapshot count/indicator.
+LAR,Yes,Yes,Both,Loan/Application Register count.
+PURC,Yes,Yes,Both,Purchased-loan count.
+PURCD,Yes,Yes,Both,Purchased-loan denial/derived count field.
+APPL,Yes,Yes,Both,Application count.
+APPLD,Yes,Yes,Both,Application denial count.
+APPLM,Yes,Yes,Both,Applications made/funded-related count field.
+APPLDM,Yes,Yes,Both,Applications made/funded plus denial-related count field.
+ORIG,Yes,Yes,Both,Originations / loans funded count.
+ORIGD,Yes,Yes,Both,Origination denial/derived count field.
+ORIGM,Yes,Yes,Both,Originations made/funded-related count field.
+ORIGDM,Yes,Yes,Both,Originations made/funded plus denial-related count field.
+ENTFUT,Yes,Yes,Both,Future/successor entity identifier field.
+ORGFUT,Yes,Yes,Both,Future/successor organization identifier field.
+LEI,,Yes,2018-present only,"Legal Entity Identifier, used in the newer HMDA schema."
+CODE17,,Yes,2018-present only,Legacy 2017-style agency/source code carried into newer file.
+EXEMPT18,,Yes,2018-present only,2018 exemption indicator in newer schema.
+LEIR,,Yes,2018-present only,Regulatory LEI where available.
+APPCLO,,Yes,2018-present only,Closed-end application count in newer schema.
+APPCLOD,,Yes,2018-present only,Closed-end application denial count in newer schema.
+APPCLOM,,Yes,2018-present only,Closed-end application made/funded-related count in newer schema.
+APPCLODM,,Yes,2018-present only,Closed-end application made/funded plus denial-related count in newer schema.
+ORICLO,,Yes,2018-present only,Closed-end origination count in newer schema.
+ORICLOD,,Yes,2018-present only,Closed-end origination denial/derived count in newer schema.
+ORICLOM,,Yes,2018-present only,Closed-end originations made/funded-related count in newer schema.
+ORICLODM,,Yes,2018-present only,Closed-end originations made/funded plus denial-related count in newer schema.
+GINNIE,,Yes,2018-present only,Ginnie Mae-related count/indicator in newer schema.
