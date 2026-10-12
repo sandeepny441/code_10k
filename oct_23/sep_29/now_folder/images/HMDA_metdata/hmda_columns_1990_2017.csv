@@ -1,0 +1,63 @@
+Position,Column,Description
+1,YEAR,Reporting year.
+2,HMPRID,HMDA respondent ID / panel respondent identifier.
+3,HMPDYN,Dynamic HMDA respondent identifier used in the older file.
+4,TAXID,Institution tax ID where available.
+5,CODE,Regulatory agency / source code in the HMDA panel file.
+6,NAMET,Institution name as reported in the transmittal/panel source.
+7,PLACET,Institution city/place as reported in the transmittal/panel source.
+8,STATET,Institution state code as reported in the transmittal/panel source.
+9,SEQINS,Institution sequence identifier.
+10,TYPE,Institution type code.
+11,RSSD,Federal Reserve RSSD identifier for the institution where available.
+12,NAMER,Regulatory institution name.
+13,FORER,Regulatory charter/name prefix or form code.
+14,CHARTR,Charter code.
+15,PLACER,Regulatory city/place.
+16,STATER,Regulatory state code.
+17,COUNTYR,Regulatory county code.
+18,TAXIDR,Regulatory tax ID.
+19,RSSDP,Parent RSSD identifier.
+20,NAMEP,Parent institution/company name.
+21,RSSDHH,Highest-holder RSSD identifier.
+22,NAMEHH,Highest-holder name.
+23,ENTITY,Entity identifier used for consolidated lender identity.
+24,NAME,Consolidated institution/lender name.
+25,FORE,Consolidated charter/name prefix or form code.
+26,PLACE,Consolidated city/place.
+27,STATE,Consolidated state code.
+28,COUNTY,Consolidated county code.
+29,INSURE,Deposit insurer / insurance code.
+30,MINBNK,Minority bank indicator.
+31,CERT,FDIC certificate number where applicable.
+32,OCC,OCC identifier or indicator where applicable.
+33,THRIFT,Thrift identifier or indicator where applicable.
+34,NCUA,NCUA identifier or indicator where applicable.
+35,ASSETS,Institution assets.
+36,ASSETL,Lender or related asset measure used by the panel file.
+37,CRADATE,CRA examination/effective date field.
+38,CRARATE,CRA rating field.
+39,CRAMETH,CRA evaluation method field.
+40,FHLB,Federal Home Loan Bank district/code.
+41,FHLBID,Federal Home Loan Bank identifier.
+42,HUD,HUD identifier/indicator in older schema.
+43,ORG,Organization identifier for parent/holding-company linkage.
+44,NAMEOR,Organization name.
+45,FOREOR,Organization charter/name prefix or form code.
+46,CHAROR,Organization charter code.
+47,ASSORG,Organization assets.
+48,REAL14,Real-estate loan or asset-related field from panel source.
+49,LARSNAP,Loan/Application Register snapshot count/indicator.
+50,LAR,Loan/Application Register count.
+51,PURC,Purchased-loan count.
+52,PURCD,Purchased-loan denial/derived count field.
+53,APPL,Application count.
+54,APPLD,Application denial count.
+55,APPLM,Applications made/funded-related count field.
+56,APPLDM,Applications made/funded plus denial-related count field.
+57,ORIG,Originations / loans funded count.
+58,ORIGD,Origination denial/derived count field.
+59,ORIGM,Originations made/funded-related count field.
+60,ORIGDM,Originations made/funded plus denial-related count field.
+61,ENTFUT,Future/successor entity identifier field.
+62,ORGFUT,Future/successor organization identifier field.

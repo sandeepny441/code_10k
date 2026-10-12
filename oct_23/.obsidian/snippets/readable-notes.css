@@ -1,0 +1,23 @@
+/* Soft table tint only. No rainbow headings, no HTML in notes. */
+
+.markdown-preview-view table thead th,
+.markdown-rendered table thead th {
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--background-secondary));
+  font-weight: 600;
+}
+
+.markdown-preview-view table tbody tr:nth-child(even),
+.markdown-rendered table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--background-secondary) 55%, transparent);
+}
+
+.markdown-preview-view table td:first-child,
+.markdown-rendered table td:first-child {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.markdown-preview-view table,
+.markdown-rendered table {
+  border-color: var(--background-modifier-border);
+}

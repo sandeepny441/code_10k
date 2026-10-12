@@ -1,0 +1,10 @@
+{
+  "baseFontSize": 22,
+  "theme": "moonstone",
+  "cssTheme": "Blue Topaz",
+  "accentColor": "#3AA99F",
+  "translucency": false,
+  "enabledCssSnippets": [
+    "readable-notes"
+  ]
+}

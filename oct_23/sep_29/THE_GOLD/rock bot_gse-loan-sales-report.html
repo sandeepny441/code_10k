@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GSE Loan Sales — Rock Bot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Pleasant executive — warm paper, soft ink, calm indigo accent
+     Clear hierarchy, distinctive where needed; not eye-popping */
+  :root {
+    --paper: #FAFAF8;
+    --ink: #1C1C1A;
+    --grey: #6F6E6A;
+    --light: #E6E4DF;
+    --accent: #5568A0;
+    --accent-soft: rgba(85, 104, 160, 0.12);
+    --bar-muted: #5C5B57;
+    --bar-bg: rgba(250, 250, 248, 0.94);
+    --f: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161615;
+      --ink: #F0EFEA;
+      --grey: #9A9890;
+      --light: #2C2B28;
+      --accent: #8B9AD4;
+      --accent-soft: rgba(139, 154, 212, 0.16);
+      --bar-muted: #8A8880;
+      --bar-bg: rgba(22, 22, 21, 0.94);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161615;
+    --ink: #F0EFEA;
+    --grey: #9A9890;
+    --light: #2C2B28;
+    --accent: #8B9AD4;
+    --accent-soft: rgba(139, 154, 212, 0.16);
+    --bar-muted: #8A8880;
+    --bar-bg: rgba(22, 22, 21, 0.94);
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--paper); }
+  body {
+    margin: 0; color: var(--ink); font-family: var(--f);
+    font-size: 16px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+    font-feature-settings: "tnum" 1, "cv11" 1;
+  }
+  a { color: inherit; text-decoration: none; }
+  button, input { font: inherit; }
+  a:focus-visible, button:focus-visible, .upload-label:focus-within {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  /* ---------- Shell ---------- */
+  .shell {
+    width: min(1760px, 100%); min-height: 100vh; margin: 0 auto;
+    display: grid; grid-template-columns: 188px minmax(0, 1fr);
+  }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    position: sticky; top: 0; align-self: start; height: 100vh; overflow: auto;
+    padding: 14px 12px 12px 14px;
+    border-right: 1px solid var(--light);
+    display: flex; flex-direction: column;
+  }
+  .brand { padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--light); }
+  .brand-title { display: flex; flex-wrap: wrap; gap: 0 0.2em; line-height: 1.05; }
+  .brand-word { font-size: 0.92rem; font-weight: 750; letter-spacing: -0.03em; }
+  .brand-word.accent { color: var(--accent); font-weight: 700; }
+  .brand-eyebrow { margin: 3px 0 0; font-size: 0.55rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--grey); line-height: 1.2; }
+
+  .nav-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 2px; }
+  .sidebar h2 { margin: 0; font-size: 0.62rem; font-weight: 600; color: var(--grey); letter-spacing: 0.06em; text-transform: uppercase; }
+  .toggle-all {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; padding: 0; border: 0; background: transparent;
+    color: var(--grey); cursor: pointer; border-radius: 4px;
+  }
+  .toggle-all:hover { color: var(--accent); background: var(--accent-soft); }
+  .toggle-all svg { width: 9px; height: 9px; transition: transform 0.15s ease; }
+  .toggle-all.collapsed svg { transform: rotate(-90deg); }
+
+  .chapters { list-style: none; margin: 0; padding: 0; }
+  .chapter { border-top: 1px solid var(--light); }
+  .chapter:first-child { border-top: 0; }
+  .chapter-btn {
+    width: 100%; display: flex; align-items: center; gap: 5px;
+    padding: 6px 0; margin: 0; border: 0; background: transparent;
+    color: var(--ink); text-align: left; cursor: pointer;
+    font-size: 0.76rem; font-weight: 650; line-height: 1.15; letter-spacing: -0.01em;
+  }
+  .chapter-btn:hover .label { color: var(--accent); }
+  .chapter-btn .chev { width: 7px; height: 7px; flex: none; }
+  .chapter:not(.open) .chapter-btn .chev { transform: rotate(-90deg); }
+  .chapter-btn .number { min-width: 16px; font-variant-numeric: tabular-nums; color: var(--grey); font-weight: 600; }
+  .chapter-btn .label { flex: 1; }
+  .chapter.current .chapter-btn { color: var(--accent); }
+  .chapter.current .chapter-btn .number { color: var(--accent); }
+  .chapter.current .chapter-btn .number,
+  .chapter.current .chapter-btn .chev { color: var(--accent); }
+
+  .topics { list-style: none; margin: 0 0 2px 10px; padding: 0; display: none; }
+  .chapter.open .topics { display: block; }
+  .topic-link {
+    display: flex; gap: 4px; align-items: baseline; padding: 2px 6px 2px 8px;
+    border-left: 1px solid var(--light); border-radius: 0 4px 4px 0;
+    color: var(--grey); font-size: 0.7rem; line-height: 1.25;
+  }
+  .topic-link:hover { color: var(--ink); background: rgba(28, 28, 26, 0.04); }
+  .topic-link.active { color: var(--ink); font-weight: 600; border-left: 2px solid var(--accent); padding-left: 7px; background: rgba(85, 104, 160, 0.08); }
+  .topic-link .number { min-width: 18px; opacity: 0.7; }
+  @media (prefers-reduced-motion: reduce) { .chapter-btn .chev, .toggle-all svg { transition: none; } }
+
+  .upload-tools { margin-top: auto; padding-top: 8px; }
+  .upload-label {
+    display: inline-flex; align-items: center; height: 30px; padding: 0 12px;
+    border: 1px solid var(--light); border-radius: 6px;
+    color: var(--ink); cursor: pointer; background: var(--paper);
+    font-size: 0.75rem; font-weight: 600;
+  }
+  .upload-label:hover {
+    border-color: var(--accent); color: var(--accent); background: var(--accent-soft);
+  }
+  .upload-label input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .upload-status { margin: 8px 0 0; font-size: 0.72rem; color: var(--grey); }
+
+  /* ---------- Main ---------- */
+  .main {
+    height: 100vh; height: 100dvh; min-height: 520px;
+    display: flex; flex-direction: column;
+    padding: clamp(14px, 3.2vh, 32px) clamp(20px, 3.2vw, 52px) clamp(12px, 2.2vh, 24px);
+    min-width: 0; container-type: inline-size;
+  }
+  .question {
+    flex: none;
+    margin: 0 0 clamp(14px, 3vh, 28px);
+    padding-top: clamp(10px, 1.8vh, 16px);
+    border-top: none;
+    box-shadow:
+      inset 0 2px 0 0 var(--accent),
+      inset 0 3px 0 0 var(--ink);
+  }
+  .question h1 {
+    margin: 0; max-width: 36ch;
+    font-size: clamp(1.35rem, min(2.3vw, 4.4vh), 2.05rem);
+    font-weight: 650;
+    line-height: 1.12; letter-spacing: -0.028em;
+    color: var(--ink);
+  }
+
+  .grid {
+    display: grid; grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr); gap: 18px;
+    flex: 1 1 auto; min-height: 0; max-height: 600px;
+    border-top: 1px solid var(--light);
+  }
+  .chart { padding: clamp(12px, 1.8vh, 16px) 22px clamp(10px, 1.4vh, 14px) 16px; display: flex; flex-direction: column; min-height: 0; background: #F3F0E8; border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(28,28,26,0.05); }
+  .chart-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 12px; flex-wrap: wrap; margin-bottom: clamp(10px, 1.8vh, 16px); flex: none;
+  }
+  .chart-head h2 { margin: 0; font-size: 0.82rem; font-weight: 700; letter-spacing: -0.005em; }
+  .commentary h2 { margin: 0 0 10px; font-size: 0.95rem; font-weight: 800; letter-spacing: -0.02em; text-align: center; width: 100%; }
+  .legend {
+    display: flex; gap: 16px; font-size: 0.72rem; font-weight: 500; color: var(--grey);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i {
+    width: 10px; height: 10px; display: inline-block;
+    border-radius: 2px;
+  }
+
+  .bars {
+    list-style: none; margin: 0; padding: 0;
+    flex: 1 1 0; min-height: 0; max-height: 510px;
+    display: grid; grid-auto-rows: minmax(18px, 1fr);
+  }
+  .bar-row {
+    display: grid; grid-template-columns: 152px minmax(0, 1fr) 68px;
+    align-items: center; gap: 14px; padding: 0;
+    border-bottom: 1px solid var(--light);
+  }
+  .bar-row:last-child { border-bottom: 0; }
+  .bar-row .state {
+    font-size: 0.8rem; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+  }
+  .bar-row .state b {
+    display: inline-block; min-width: 28px; font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+  .bar-row .state .full { color: var(--grey); font-weight: 400; margin-left: 2px; }
+  .bar-row.top .state .full { color: var(--ink); }
+  .bar-row.top .state b { color: var(--accent); }
+  .track { height: min(14px, 72%); display: flex; align-items: stretch; }
+  .bar-row .track {
+    height: 100%; max-height: 14px; min-height: 10px;
+    background: rgba(28, 28, 26, 0.04);
+    border-radius: 3px; overflow: hidden;
+  }
+  .fill {
+    height: 100%; width: 0;
+    background: var(--bar-muted);
+    border-radius: 3px;
+    transition: width 700ms cubic-bezier(.2,.7,.2,1);
+  }
+  .bar-row.top .fill { background: var(--accent); }
+  .bar-row .val { text-align: right; font-size: 0.8rem; font-weight: 600; color: var(--ink); }
+  .bar-row.top .val { color: var(--accent); }
+  @media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+  .chart-note { flex: none; margin: clamp(8px, 1.4vh, 12px) 0 0; font-size: 0.72rem; color: var(--grey); }
+
+  .commentary { padding: clamp(12px, 1.8vh, 16px) 16px clamp(10px, 1.4vh, 14px) 18px; border-left: 0; background: #EEF2F8; border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(28,28,26,0.05); }
+  .commentary h2 { margin-bottom: 4px; color: var(--grey); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.68rem; }
+  .points { list-style: none; margin: 0; padding: 0; }
+  .points li {
+    display: grid; grid-template-columns: 6px 1fr; gap: 14px;
+    padding: clamp(10px, 1.8vh, 15px) 0;
+    border-bottom: 1px solid var(--light);
+  }
+  .points li:last-child { border-bottom: 0; }
+  .points li::before {
+    content: ""; width: 6px; height: 6px; margin-top: 0.55em;
+    border-radius: 50%; background: var(--accent);
+  }
+  .points p {
+    margin: 0; color: var(--ink);
+    font-size: 0.97rem; /* ~15.5px */
+    line-height: 1.55; letter-spacing: -0.005em;
+    max-width: 42ch; font-weight: 450;
+  }
+  .points p strong { color: var(--accent); font-weight: 700; }
+
+  .source {
+    flex: none; margin: clamp(10px, 1.6vh, 16px) 0 0;
+    padding-top: 10px; border-top: 1px solid var(--light);
+    font-size: 0.72rem; color: var(--grey);
+  }
+
+  /* ---------- Mobile ---------- */
+  .mobile-bar, .backdrop { display: none; }
+  @media (max-width: 820px) {
+    .mobile-bar {
+      position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px;
+      height: 50px; padding: 0 12px; border-bottom: 1px solid var(--light);
+      background: var(--bar-bg); backdrop-filter: blur(10px);
+    }
+    .mobile-toggle { width: 34px; height: 34px; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
+    .mobile-toggle svg { width: 18px; height: 18px; }
+    .mobile-bar strong { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.02em; }
+    .shell { grid-template-columns: 1fr; }
+    .sidebar {
+      position: fixed; top: 50px; left: 0; bottom: 0; height: auto; z-index: 25;
+      width: min(84vw, 300px); background: var(--paper);
+      border-right: 1px solid var(--light);
+      transform: translateX(-102%); transition: transform 0.2s ease;
+    }
+    body.nav-open .sidebar { transform: translateX(0); }
+    .main { height: auto; min-height: 0; display: block; padding: 20px 16px 40px; }
+    .bars { display: block; max-height: none; }
+    .bar-row { padding: 4px 0; }
+    .bar-row .track { height: 12px; }
+    .backdrop {
+      position: fixed; inset: 50px 0 0; z-index: 15; display: block;
+      opacity: 0; pointer-events: none; background: rgba(28, 28, 26, 0.28); transition: opacity 0.2s ease;
+    }
+    body.nav-open .backdrop { opacity: 1; pointer-events: auto; }
+  }
+
+  @media (max-width: 1100px) and (min-width: 821px) {
+    .shell { grid-template-columns: 208px minmax(0, 1fr); }
+  }
+  @container (max-width: 900px) {
+    .chart { padding-right: 18px; }
+    .commentary { padding-left: 18px; }
+    .bar-row { grid-template-columns: 120px minmax(0, 1fr) 56px; gap: 8px; }
+    .bar-row .state, .bar-row .val { font-size: 0.76rem; }
+    .points li { gap: 10px; }
+    .points p { font-size: 0.92rem; }
+  }
+  @container (max-width: 700px) {
+    .bar-row { grid-template-columns: 28px minmax(0, 1fr) 52px; }
+    .bar-row .state .full { display: none; }
+  }
+  @container (max-width: 380px) {
+    .grid { grid-template-columns: 1fr; }
+    .chart { padding-right: 0; }
+    .commentary { border-left: 0; border-top: 1px solid var(--light); padding-left: 0; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .bar-row .track { background: rgba(240, 239, 234, 0.06); }
+    :root:not([data-theme="light"]) .topic-link:hover { background: rgba(240, 239, 234, 0.05); }
+  }
+  :root[data-theme="dark"] .bar-row .track { background: rgba(240, 239, 234, 0.06); }
+  :root[data-theme="dark"] .topic-link:hover { background: rgba(240, 239, 234, 0.05); }
+
+  :root[data-theme="dark"] .chart { background: #1E1E1C; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+  :root[data-theme="dark"] .commentary { background: #1A1D24; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <header class="mobile-bar">
+    <button class="mobile-toggle" id="menuToggle" aria-label="Show chapters">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"/></svg>
+    </button>
+    <strong id="mobileTitle">GSE Loan Sales</strong>
+  </header>
+  <div class="backdrop" id="backdrop"></div>
+
+  <div class="shell">
+    <!-- Left: chapters with their topics -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div id="brandTitle"></div>
+        <p class="brand-eyebrow">Design pass · rock bot</p>
+      </div>
+      <div class="nav-head">
+        <h2>Chapters</h2>
+        <button class="toggle-all" id="toggleAll" type="button"></button>
+      </div>
+      <nav aria-label="Chapters and topics"><ul class="chapters" id="chapterNav"></ul></nav>
+      <div class="upload-tools">
+        <label class="upload-label">Upload Excel
+          <input id="excelUpload" type="file" accept=".xlsx,.xls">
+        </label>
+        <p class="upload-status" id="uploadStatus"></p>
+      </div>
+    </aside>
+
+    <!-- Center: question, chart, commentary -->
+    <main class="main">
+      <header class="question">
+        <h1 id="question"></h1>
+      </header>
+
+      <section class="grid">
+        <div class="chart">
+          <div class="chart-head">
+            <h2 id="chartTitle"></h2>
+            <div class="legend" aria-hidden="true">
+              <span><i style="background:var(--accent)"></i>Top 3</span>
+              <span><i style="background:var(--bar-muted)"></i>Rest of top 15</span>
+            </div>
+          </div>
+          <ol class="bars" id="bars"></ol>
+          <p class="chart-note" id="chartNote"></p>
+        </div>
+        <aside class="commentary">
+          <h2>Takeaways</h2>
+          <ul class="points" id="points"></ul>
+        </aside>
+      </section>
+
+      <p class="source">Source: placeholder. Figures are illustrative sample data.</p>
+    </main>
+
+  </div>
+
+<script>
+/* =========================================================
+   DEMO CONTENT
+   Each row = one topic. Rows with the same chapter are grouped.
+   data:        "CA=48210; TX=41870; ..."  (state code or any label)
+   commentary:  one bullet per line. Put **around numbers** to bold them in the theme color.
+   ========================================================= */
+const demoRows = [
+  {
+    chapter: "GSE loan sales",
+    topic: "Loans sold by state",
+    question: "How many GSE-sold loans did lenders close or fund?",
+    chart_title: "Loans sold to the GSEs, last 12 months",
+    unit: "loans",
+    data: "CA=48210; TX=41870; FL=36540; NY=22960; IL=19430; PA=17880; OH=16120; GA=15740; NC=15210; MI=13650; AZ=13020; WA=12480; NJ=11930; VA=11370; CO=10840",
+    commentary:
+      "California, Texas and Florida account for **41%** of loans sold across the top 15 states.\n" +
+      "California leads with **48,210** loans, about **6,300** more than Texas.\n" +
+      "The top state sells **4.4×** as many loans as Colorado at #15, but states 8 to 15 sit in a tight **10,800 to 15,700** band.\n" +
+      "Sun Belt states (TX, FL, GA, NC, AZ) grew fastest, up **12%** year over year."
+  },
+  {
+    chapter: "GSE loan sales",
+    topic: "Sold to Fannie Mae",
+    question: "How many loans did lenders sell to Fannie Mae?",
+    chart_title: "Loans sold to Fannie Mae",
+    unit: "loans",
+    data: "CA=26480; TX=22150; FL=19870; NY=13110; IL=10020; PA=9340; GA=8650; OH=8210; NC=8120; AZ=7240; MI=6980; WA=6910; NJ=6420; VA=6030; CO=5870",
+    commentary:
+      "Fannie Mae took **54%** of GSE-sold loans in the top 15 states.\n" +
+      "New York leans on Fannie Mae the most, at **57%**.\n" +
+      "Ohio is nearly an even split, with **51%** going to Fannie Mae.\n" +
+      "The top 3 states match total sales, so the choice of GSE isn't driven by geography."
+  },
+  {
+    chapter: "GSE loan sales",
+    topic: "Dollar volume",
+    question: "What dollar volume did lenders sell to Fannie and Freddie?",
+    chart_title: "Dollar volume sold to the GSEs",
+    unit: "", prefix: "$", suffix: "B", decimals: 1,
+    data: "CA=19.8; TX=13.1; FL=11.4; NY=8.9; IL=5.1; WA=4.6; PA=4.4; GA=4.3; NJ=4.2; NC=4.1; AZ=3.9; CO=3.9; VA=3.8; OH=3.4; MI=3.0",
+    commentary:
+      "The top 3 hold **45%** of dollars versus **41%** of loans, so their loans run larger.\n" +
+      "California's average loan is **$411K**, about **$90K** above the top-15 average of **$319K**.\n" +
+      "Washington ranks **12th** by loan count but **6th** by dollars, driven by high home prices.\n" +
+      "Michigan is last by dollars at **$3.0B**, despite ranking **10th** by loan count."
+  },
+  {
+    chapter: "Lenders",
+    topic: "Active lenders by state",
+    question: "How many lenders sold loans to Fannie Mae or Freddie Mac?",
+    chart_title: "Lenders with at least one GSE sale",
+    unit: "lenders",
+    data: "CA=1184; TX=1092; FL=1036; NY=842; IL=798; PA=771; OH=745; GA=733; NC=719; AZ=702; MI=688; VA=671; WA=664; NJ=652; CO=640",
+    commentary:
+      "The top 3 states have **28%** of lenders but **41%** of loans, so each lender sells more.\n" +
+      "California lenders sold about **41** loans each, versus **17** in Colorado.\n" +
+      "Lender counts are flat: the #1 state has only **1.9×** as many as #15.\n" +
+      "Lenders active in several states are counted in each one, so totals exceed unique lenders."
+  },
+  {
+    chapter: "Loan officers",
+    topic: "Loan officers by state",
+    question: "How many loan officers closed loans sold to Fannie or Freddie?",
+    chart_title: "Loan officers with a GSE-sold loan",
+    unit: "loan officers",
+    data: "CA=14820; TX=12960; FL=11870; NY=6940; IL=5810; PA=5260; GA=4880; OH=4730; NC=4610; AZ=4120; MI=3990; WA=3870; NJ=3640; VA=3520; CO=3310",
+    commentary:
+      "**94,330** loan officers across the top 15 states closed at least one GSE-sold loan.\n" +
+      "The typical officer closed about **3.3** GSE-sold loans a year, steady across states.\n" +
+      "California, Texas and Florida employ **42%** of these loan officers, in line with their loan share.\n" +
+      "Because productivity is so even, headcount is a good proxy for loan volume in each state."
+  }
+];
+
+/* ========================================================= */
+const STATE_NAMES = {AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",DC:"District of Columbia",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming"};
+const HIGHLIGHT = 3;
+const state = { data: null, section: "", item: "", title: "GSE Loan Sales", open: new Set() };
+const $ = id => document.getElementById(id);
+
+const normalizeHeader = v => String(v || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+const slugify = v => String(v || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "item";
+const esc = t => String(t ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+const richText = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+
+function parseData(text) {
+  return String(text || "").split(/[;\n]+/).map(p => p.trim()).filter(Boolean).map(p => {
+    const m = p.match(/^(.+?)\s*[=:]\s*(-?[\d,.]+)$/);
+    if (!m) return null;
+    const label = m[1].trim();
+    const code = label.toUpperCase();
+    const isCode = STATE_NAMES[code] !== undefined;
+    return { code: isCode ? code : "", name: isCode ? STATE_NAMES[code] : label, value: parseFloat(m[2].replace(/,/g, "")) };
+  }).filter(Boolean).sort((a, b) => b.value - a.value);
+}
+
+function parseCommentary(text) {
+  return String(text || "").split(/\n+/).map(l => l.trim()).filter(Boolean).map(l => {
+    const i = l.indexOf("|");
+    return i > -1 ? { stat: l.slice(0, i).trim(), text: l.slice(i + 1).trim() } : { stat: "", text: l };
+  });
+}
+
+function buildData(rows) {
+  const sections = [], map = new Map();
+  rows.forEach(raw => {
+    const r = {};
+    Object.entries(raw).forEach(([k, v]) => { r[normalizeHeader(k)] = v == null ? "" : String(v).trim(); });
+    const chapter = r.chapter || r.section || r.group;
+    const topic = r.topic || r.subtopic || r.item || r.title;
+    if (!chapter || !topic) return;
+    const key = slugify(chapter);
+    if (!map.has(key)) {
+      const s = { key, number: String(sections.length + 1) + "-", label: chapter, items: [] };
+      map.set(key, s); sections.push(s);
+    }
+    const s = map.get(key);
+    s.items.push({
+      id: slugify(topic),
+      number: (s.items.length + 1) + "-",
+      title: topic,
+      question: r.question || topic,
+      chartTitle: r.chart_title || topic,
+      unit: r.unit || "",
+      prefix: r.prefix || "",
+      suffix: r.suffix || "",
+      decimals: r.decimals !== "" && r.decimals != null ? Number(r.decimals) : 0,
+      bars: parseData(r.data),
+      points: parseCommentary(r.commentary)
+    });
+  });
+  if (!sections.length) throw new Error("No usable rows. Include at least chapter and topic columns.");
+  return { sections };
+}
+
+function fmt(item, n) {
+  return item.prefix + n.toLocaleString("en-US", { minimumFractionDigits: item.decimals, maximumFractionDigits: item.decimals }) + item.suffix;
+}
+
+const currentSection = () => state.data.sections.find(s => s.key === state.section) || state.data.sections[0];
+const currentItem = () => currentSection().items.find(i => i.id === state.item) || currentSection().items[0];
+
+function renderBrand() {
+  const words = String(state.title).replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim().split(/\s+/).filter(Boolean);
+  $("brandTitle").innerHTML = '<div class="brand-title">' + words.map((w, i) =>
+    '<span class="brand-word' + (words.length > 1 && i === words.length - 1 ? " accent" : "") + '">' + esc(w) + '</span>').join("") + '</div>';
+  $("mobileTitle").textContent = words.join(" ");
+}
+
+const CHEV = '<svg class="chev" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 2.5h8L5 8z" fill="currentColor"/></svg>';
+
+function renderNav() {
+  $("chapterNav").innerHTML = state.data.sections.map(sec => {
+    const open = state.open.has(sec.key);
+    const cls = "chapter" + (open ? " open" : "") + (sec.key === state.section ? " current" : "");
+    return '<li class="' + cls + '">' +
+      '<button class="chapter-btn" type="button" data-toggle="' + sec.key + '" aria-expanded="' + open + '">' +
+        CHEV + '<span class="number">' + sec.number + '</span><span class="label">' + esc(sec.label) + '</span>' +
+      '</button>' +
+      '<ul class="topics">' + sec.items.map(i =>
+        '<li><a class="topic-link' + (sec.key === state.section && i.id === state.item ? " active" : "") +
+        '" href="#' + sec.key + '/' + i.id + '" data-section="' + sec.key + '" data-item="' + i.id + '">' +
+        '<span class="number">' + i.number + '</span><span>' + esc(i.title) + '</span></a></li>').join("") +
+      '</ul></li>';
+  }).join("");
+
+  const anyOpen = state.open.size > 0;
+  const t = $("toggleAll");
+  t.innerHTML = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 2.5h8L5 8z" fill="currentColor"/></svg>';
+  t.classList.toggle("collapsed", !anyOpen);
+  t.setAttribute("aria-label", anyOpen ? "Collapse all chapters" : "Expand all chapters");
+  t.title = anyOpen ? "Collapse all" : "Expand all";
+}
+
+// Chapter click: open or close its topic list (content stays put)
+$("chapterNav").addEventListener("click", e => {
+  const btn = e.target.closest("[data-toggle]");
+  if (btn) {
+    const key = btn.dataset.toggle;
+    state.open.has(key) ? state.open.delete(key) : state.open.add(key);
+    renderNav();
+    return;
+  }
+  // Topic click: show that topic's question, chart and commentary
+  const link = e.target.closest("[data-item]");
+  if (link) {
+    e.preventDefault();
+    state.section = link.dataset.section;
+    state.item = link.dataset.item;
+    render();
+  }
+});
+
+// Collapse all / expand all
+$("toggleAll").addEventListener("click", () => {
+  if (state.open.size) state.open.clear();
+  else state.data.sections.forEach(sec => state.open.add(sec.key));
+  renderNav();
+});
+
+function renderContent() {
+  const sec = currentSection(), item = currentItem();
+  $("question").textContent = item.question;
+
+  $("chartTitle").textContent = item.chartTitle;
+  $("chartNote").textContent = item.unit ? "Values shown in " + item.unit + ". Sample data." : "Sample data.";
+
+  const max = item.bars.length ? item.bars[0].value : 1;
+  $("bars").innerHTML = item.bars.map((b, i) =>
+    '<li class="bar-row' + (i < HIGHLIGHT ? " top" : "") + '">' +
+      '<span class="state" title="' + esc(b.name) + '">' + (b.code ? "<b>" + b.code + "</b><span class=\"full\">" + esc(b.name) + "</span>" : esc(b.name)) + '</span>' +
+      '<div class="track" role="img" aria-label="' + esc(b.name + ": " + fmt(item, b.value)) + '"><div class="fill" data-w="' + (b.value / max * 100).toFixed(1) + '"></div></div>' +
+      '<span class="val">' + esc(fmt(item, b.value)) + '</span></li>').join("");
+  requestAnimationFrame(() => requestAnimationFrame(() =>
+    document.querySelectorAll(".fill").forEach(el => el.style.width = el.dataset.w + "%")));
+
+  $("points").innerHTML = item.points.map(p =>
+    '<li><p>' + richText(p.stat ? p.stat + " " + p.text : p.text) + '</p></li>').join("");
+}
+
+function render() {
+  renderNav();
+  renderContent();
+  history.replaceState(null, "", "#" + currentSection().key + "/" + state.item);
+  document.body.classList.remove("nav-open");
+}
+
+function hydrateFromHash() {
+  const [sKey, iId] = location.hash.replace(/^#/, "").split("/");
+  const sec = state.data.sections.find(s => s.key === sKey);
+  if (!sec) return;
+  state.section = sec.key;
+  state.item = sec.items.some(i => i.id === iId) ? iId : sec.items[0].id;
+  state.open.add(sec.key);
+}
+
+function setData(rows, title) {
+  state.data = buildData(rows);
+  state.title = title;
+  state.section = state.data.sections[0].key;
+  state.item = state.data.sections[0].items[0].id;
+  state.open = new Set([state.section]);
+  renderBrand();
+}
+
+$("excelUpload").addEventListener("change", async e => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  if (!window.XLSX) { $("uploadStatus").textContent = "Excel reader didn't load. Check your internet connection."; return; }
+  try {
+    const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+    const sheet = wb.SheetNames.find(n => normalizeHeader(n) === "content") || wb.SheetNames[0];
+    setData(XLSX.utils.sheet_to_json(wb.Sheets[sheet], { defval: "" }), file.name);
+    render();
+    $("uploadStatus").textContent = "Loaded " + file.name;
+  } catch (err) {
+    $("uploadStatus").textContent = err.message;
+  }
+});
+
+$("menuToggle").addEventListener("click", () => document.body.classList.toggle("nav-open"));
+$("backdrop").addEventListener("click", () => document.body.classList.remove("nav-open"));
+window.addEventListener("hashchange", () => { hydrateFromHash(); render(); });
+
+setData(demoRows, "GSE Loan Sales");
+hydrateFromHash();
+render();
+</script>
+</body>
+</html>

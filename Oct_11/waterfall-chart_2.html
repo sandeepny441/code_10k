@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Basis Points Waterfall</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --card: #f5f4f0;
+    --text: #0b0b0b;
+    --text-2: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --base: #c3c2b7;
+    --border: rgba(11,11,11,0.12);
+    --input-bg: #ffffff;
+    --total: #2a78d6;
+    --up: #1baf7a;
+    --down: #e34948;
+    --zero: #b4b2a9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141413; --card: #1f1f1d; --text: #f0efec; --text-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --base: #383835; --border: rgba(255,255,255,0.14); --input-bg: #1a1a19;
+      --total: #3987e5; --up: #199e70; --down: #e66767; --zero: #5f5e5a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141413; --card: #1f1f1d; --text: #f0efec; --text-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --base: #383835; --border: rgba(255,255,255,0.14); --input-bg: #1a1a19;
+    --total: #3987e5; --up: #199e70; --down: #e66767; --zero: #5f5e5a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+  main { max-width: 960px; margin: 0 auto; padding: 32px 16px 48px; }
+  h1 { font-size: 22px; font-weight: 500; margin: 0 0 4px; }
+  h2 { font-size: 17px; font-weight: 500; margin: 40px 0 4px; }
+  .sub { font-size: 14px; color: var(--text-2); margin: 0 0 24px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .kpi { background: var(--card); border-radius: 8px; padding: 16px; }
+  .kpi .label { font-size: 13px; color: var(--text-2); }
+  .kpi .value { font-size: 24px; font-weight: 500; margin-top: 2px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--text-2); margin-bottom: 8px; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+  .chart { position: relative; width: 100%; height: 460px; }
+
+  input {
+    font: inherit; font-size: 14px; color: var(--text); background: var(--input-bg);
+    border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; width: 100%;
+  }
+  input:focus { outline: none; border-color: var(--total); box-shadow: 0 0 0 2px color-mix(in srgb, var(--total) 25%, transparent); }
+  input.num { text-align: right; }
+  button {
+    font: inherit; font-size: 13px; color: var(--text); background: transparent;
+    border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; cursor: pointer;
+  }
+  button:hover { background: var(--card); }
+  button.icon { width: 30px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: var(--text-2); }
+  button.icon:disabled { opacity: 0.35; cursor: default; background: transparent; }
+
+  .settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+  .settings label { font-size: 13px; color: var(--text-2); display: block; margin-bottom: 4px; }
+
+  .table-wrap { border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 480px; }
+  th { text-align: left; font-size: 12px; font-weight: 500; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--border); background: var(--card); }
+  th.right { text-align: right; }
+  td { padding: 6px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  td.sw-cell { width: 28px; padding-right: 0; }
+  td.val { width: 150px; }
+  td.actions { width: 116px; white-space: nowrap; text-align: right; }
+  tr.fixed td { background: color-mix(in srgb, var(--total) 6%, transparent); }
+  .fixed-name { font-size: 14px; font-weight: 500; padding: 7px 0; }
+  .fixed-val { font-size: 14px; font-weight: 500; text-align: right; padding: 7px 10px; }
+  .toolbar { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .hint { font-size: 12px; color: var(--muted); margin: 0 0 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title">Average basis points per loan</h1>
+  <p class="sub" id="subtitle">Hypothetical walk from expected to realized margin</p>
+
+  <div class="kpis">
+    <div class="kpi"><div class="label">Starting expectation</div><div class="value" id="kStart"></div></div>
+    <div class="kpi"><div class="label">Low point</div><div class="value" id="kLow"></div></div>
+    <div class="kpi"><div class="label">Final realized</div><div class="value" id="kEnd"></div></div>
+    <div class="kpi"><div class="label">Loans funded</div><div class="value" id="kLoans"></div></div>
+  </div>
+
+  <div class="legend">
+    <span><i class="sw" style="background:var(--total)"></i>Start / end total</span>
+    <span><i class="sw" style="background:var(--down)"></i><span id="lgDown">Takes margin away</span></span>
+    <span><i class="sw" style="background:var(--up)"></i><span id="lgUp">Adds margin</span></span>
+  </div>
+
+  <div class="chart">
+    <canvas id="wf" role="img" aria-label="Waterfall chart of average basis points per loan, built from the editable table below">Waterfall chart of basis points per loan.</canvas>
+  </div>
+
+  <h2>Edit the chart</h2>
+  <p class="hint">Type a negative value (e.g. -70) for a red bar, a positive value (e.g. 20) for a green bar. Bars appear left to right in table order. The final bar is calculated for you.</p>
+
+  <div class="settings">
+    <div><label for="inLoans">Number of loans</label><input id="inLoans" class="num" type="number" step="1" min="0" value="160000"></div>
+    <div><label for="inSub">Chart subtitle</label><input id="inSub" type="text" value="Hypothetical walk from expected to realized margin"></div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th></th><th>Column name</th><th class="right">Value (bps)</th><th class="right">Order</th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <div class="toolbar">
+    <button type="button" id="addRow">+ Add column</button>
+    <button type="button" id="resetRows">Reset to example</button>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+(function () {
+  var EXAMPLE = {
+    startName: 'Starting expectation', start: 220, endName: 'Final realized',
+    rows: [
+      { name: 'Incentives', value: -70 },
+      { name: 'Rate sheet', value: -50 },
+      { name: 'Group adjustments', value: -35 },
+      { name: 'Other deductions', value: -20 },
+      { name: 'Underwriting', value: 20 },
+      { name: 'Hedge', value: 15 },
+      { name: 'Lender fee', value: 10 },
+      { name: 'Other gains', value: 10 }
+    ]
+  };
+  var state = JSON.parse(JSON.stringify(EXAMPLE));
+
+  var css = getComputedStyle(document.documentElement);
+  function v(n) { return css.getPropertyValue(n).trim(); }
+  var C = { text: v('--text'), muted: v('--muted'), grid: v('--grid'), base: v('--base'),
+            total: v('--total'), up: v('--up'), down: v('--down'), zero: v('--zero') };
+
+  function num(x) { var n = parseFloat(x); return isFinite(n) ? n : 0; }
+  function fmt(n) { return (Math.round(n * 100) / 100).toLocaleString(); }
+  function signed(n) { return (n > 0 ? '+' : n < 0 ? '-' : '') + fmt(Math.abs(n)); }
+  function wrap(s) {
+    var words = String(s || '').trim().split(/\s+/), lines = [], cur = '';
+    words.forEach(function (w) {
+      if (cur && (cur + ' ' + w).length > 12) { lines.push(cur); cur = w; }
+      else cur = cur ? cur + ' ' + w : w;
+    });
+    if (cur) lines.push(cur);
+    return lines.length ? lines : [''];
+  }
+  function colorFor(val) { return val > 0 ? C.up : val < 0 ? C.down : C.zero; }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+  function compute() {
+    var items = [{ name: state.startName, value: num(state.start), kind: 'total' }];
+    state.rows.forEach(function (r) { items.push({ name: r.name, value: num(r.value), kind: 'delta' }); });
+    var running = [], bars = [], colors = [], r = 0;
+    items.forEach(function (it) {
+      if (it.kind === 'total') { r = it.value; bars.push([0, r]); colors.push(C.total); }
+      else { var p = r; r += it.value; bars.push([Math.min(p, r), Math.max(p, r)]); colors.push(colorFor(it.value)); }
+      running.push(r);
+    });
+    items.push({ name: state.endName, value: r, kind: 'total' });
+    bars.push([0, r]); colors.push(C.total); running.push(r);
+    return { items: items, bars: bars, colors: colors, running: running };
+  }
+
+  var chart;
+  var valueLabels = {
+    id: 'valueLabels',
+    afterDatasetsDraw: function (ch) {
+      var d = ch.$wf; if (!d) return;
+      var ctx = ch.ctx, meta = ch.getDatasetMeta(0);
+      var family = getComputedStyle(document.body).fontFamily;
+      var VAL_FONT = '500 12px ' + family, NAME_FONT = '400 11px ' + family;
+      var LH = 13, GAP = 5;
+      function drawUp(lines, x, y, font, color) {
+        ctx.font = font; ctx.fillStyle = color; ctx.textBaseline = 'bottom';
+        for (var k = lines.length - 1; k >= 0; k--) { ctx.fillText(lines[k], x, y); y -= LH; }
+        return y;
+      }
+      function drawDown(lines, x, y, font, color) {
+        ctx.font = font; ctx.fillStyle = color; ctx.textBaseline = 'top';
+        for (var k = 0; k < lines.length; k++) { ctx.fillText(lines[k], x, y); y += LH; }
+        return y;
+      }
+      ctx.save(); ctx.textAlign = 'center';
+      meta.data.forEach(function (el, i) {
+        var it = d.items[i]; if (!it) return;
+        var top = Math.min(el.y, el.base), bot = Math.max(el.y, el.base);
+        var name = wrap(it.name);
+        if (it.kind === 'total') {
+          var yUp = drawUp([fmt(it.value)], el.x, top - GAP, VAL_FONT, C.text);
+          drawUp(name, el.x, yUp - 1, NAME_FONT, C.muted);
+        } else if (it.value < 0) {
+          drawUp(name, el.x, top - GAP, NAME_FONT, C.muted);
+          drawDown([signed(it.value)], el.x, bot + GAP, VAL_FONT, C.text);
+        } else {
+          drawUp([signed(it.value)], el.x, top - GAP, VAL_FONT, C.text);
+          drawDown(name, el.x, bot + GAP, NAME_FONT, C.muted);
+        }
+      });
+      ctx.restore();
+    }
+  };
+
+  function niceStep(range) {
+    var raw = range / 6, mag = Math.pow(10, Math.floor(Math.log10(raw || 1)));
+    var n = raw / mag; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * mag;
+  }
+
+  function render() {
+    var d = compute();
+    var lo = Math.min(0, Math.min.apply(null, d.running), Math.min.apply(null, d.bars.map(function (b) { return b[0]; })));
+    var hi = Math.max(0, Math.max.apply(null, d.bars.map(function (b) { return b[1]; })));
+    var step = niceStep((hi - lo) || 10);
+    var yMax = Math.ceil((hi + step * 1.6) / step) * step;
+    var yMin = lo < 0 ? Math.floor((lo - step * 1.2) / step) * step : 0;
+
+    var neg = 0, pos = 0;
+    d.items.forEach(function (it) { if (it.kind === 'delta') { if (it.value < 0) neg += it.value; else pos += it.value; } });
+    document.getElementById('kStart').textContent = fmt(num(state.start)) + ' bps';
+    document.getElementById('kLow').textContent = fmt(Math.min.apply(null, d.running)) + ' bps';
+    document.getElementById('kEnd').textContent = fmt(d.running[d.running.length - 1]) + ' bps';
+    document.getElementById('kLoans').textContent = Math.round(num(document.getElementById('inLoans').value)).toLocaleString();
+    document.getElementById('lgDown').textContent = 'Takes margin away (' + signed(neg) + ' bps)';
+    document.getElementById('lgUp').textContent = 'Adds margin (' + signed(pos) + ' bps)';
+    document.getElementById('subtitle').textContent = document.getElementById('inSub').value;
+    document.getElementById('endVal').textContent = fmt(d.running[d.running.length - 1]);
+
+    var labels = d.items.map(function (it) { return wrap(it.name); });
+    if (!chart) {
+      chart = new Chart(document.getElementById('wf'), {
+        type: 'bar',
+        data: { labels: labels, datasets: [{ data: d.bars, backgroundColor: d.colors, borderRadius: 3, borderSkipped: false, categoryPercentage: 0.96, barPercentage: 1 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false, animation: { duration: 250 },
+          layout: { padding: { top: 8, bottom: 48 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: {
+              title: function (t) { return chart.$wf.items[t[0].dataIndex].name; },
+              label: function (t) {
+                var it = chart.$wf.items[t.dataIndex];
+                if (it.kind !== 'delta') return 'Total: ' + fmt(it.value) + ' bps';
+                return [signed(it.value) + ' bps', 'Running total: ' + fmt(chart.$wf.running[t.dataIndex]) + ' bps'];
+              }
+            } }
+          },
+          scales: {
+            x: { grid: { display: false }, border: { color: C.base }, ticks: { display: false } },
+            y: { border: { display: false }, grid: { color: C.grid }, ticks: { color: C.muted, font: { size: 11 } },
+                 title: { display: true, text: 'Basis points per loan', color: C.muted, font: { size: 12 } } }
+          }
+        },
+        plugins: [valueLabels]
+      });
+    }
+    chart.$wf = d;
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = d.bars;
+    chart.data.datasets[0].backgroundColor = d.colors;
+    chart.options.scales.y.min = yMin;
+    chart.options.scales.y.max = yMax;
+    chart.options.scales.y.ticks.stepSize = step;
+    chart.update();
+  }
+
+  var tbody = document.getElementById('rows');
+  function buildTable() {
+    var html = '';
+    html += '<tr class="fixed"><td class="sw-cell"><i class="sw" style="background:var(--total)"></i></td>' +
+      '<td><input type="text" data-fixed="startName" value="' + esc(state.startName) + '" aria-label="Starting bar name"></td>' +
+      '<td class="val"><input class="num" type="number" step="any" data-fixed="start" value="' + esc(state.start) + '" aria-label="Starting value"></td>' +
+      '<td class="actions" style="font-size:12px;color:var(--muted)">Start</td></tr>';
+    state.rows.forEach(function (r, i) {
+      var n = num(r.value);
+      var col = n > 0 ? 'var(--up)' : n < 0 ? 'var(--down)' : 'var(--zero)';
+      html += '<tr><td class="sw-cell"><i class="sw" data-sw="' + i + '" style="background:' + col + '"></i></td>' +
+        '<td><input type="text" data-i="' + i + '" data-k="name" value="' + esc(r.name) + '" placeholder="Column name" aria-label="Column name"></td>' +
+        '<td class="val"><input class="num" type="number" step="any" data-i="' + i + '" data-k="value" value="' + esc(r.value) + '" placeholder="0" aria-label="Value in bps"></td>' +
+        '<td class="actions">' +
+          '<button type="button" class="icon" data-act="up" data-i="' + i + '" aria-label="Move up"' + (i === 0 ? ' disabled' : '') + '>&#8593;</button> ' +
+          '<button type="button" class="icon" data-act="down" data-i="' + i + '" aria-label="Move down"' + (i === state.rows.length - 1 ? ' disabled' : '') + '>&#8595;</button> ' +
+          '<button type="button" class="icon" data-act="del" data-i="' + i + '" aria-label="Remove column">&#10005;</button>' +
+        '</td></tr>';
+    });
+    html += '<tr class="fixed"><td class="sw-cell"><i class="sw" style="background:var(--total)"></i></td>' +
+      '<td><input type="text" data-fixed="endName" value="' + esc(state.endName) + '" aria-label="Ending bar name"></td>' +
+      '<td class="val"><div class="fixed-val" id="endVal"></div></td>' +
+      '<td class="actions" style="font-size:12px;color:var(--muted)">Auto</td></tr>';
+    tbody.innerHTML = html;
+  }
+
+  tbody.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.dataset.fixed) state[t.dataset.fixed] = t.value;
+    else if (t.dataset.i !== undefined) {
+      var i = +t.dataset.i;
+      state.rows[i][t.dataset.k] = t.value;
+      if (t.dataset.k === 'value') {
+        var n = num(t.value), sw = tbody.querySelector('[data-sw="' + i + '"]');
+        if (sw) sw.style.background = n > 0 ? 'var(--up)' : n < 0 ? 'var(--down)' : 'var(--zero)';
+      }
+    }
+    render();
+  });
+  tbody.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b || b.disabled) return;
+    var i = +b.dataset.i, rows = state.rows;
+    if (b.dataset.act === 'del') rows.splice(i, 1);
+    if (b.dataset.act === 'up' && i > 0) rows.splice(i - 1, 0, rows.splice(i, 1)[0]);
+    if (b.dataset.act === 'down' && i < rows.length - 1) rows.splice(i + 1, 0, rows.splice(i, 1)[0]);
+    buildTable(); render();
+  });
+  document.getElementById('addRow').addEventListener('click', function () {
+    state.rows.push({ name: 'New column', value: 0 });
+    buildTable(); render();
+    var inputs = tbody.querySelectorAll('input[data-k="name"]');
+    var last = inputs[inputs.length - 1]; if (last) { last.focus(); last.select(); }
+  });
+  document.getElementById('resetRows').addEventListener('click', function () {
+    state = JSON.parse(JSON.stringify(EXAMPLE));
+    buildTable(); render();
+  });
+  document.getElementById('inLoans').addEventListener('input', render);
+  document.getElementById('inSub').addEventListener('input', render);
+
+  buildTable();
+  render();
+})();
+</script>
+</body>
+</html>
